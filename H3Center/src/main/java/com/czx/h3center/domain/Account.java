@@ -5,6 +5,8 @@ import com.czx.h3common.security.HSTink;
 import com.czx.h3dao.repository.TransactionGuard;
 import com.czx.h3facade.Exceptions.ErrorMsg;
 import com.czx.h3facade.Exceptions.H3RuntimeException;
+import com.czx.h3facade.dto.ApplyHomeDto;
+import com.czx.h3facade.dto.UserLoginDto;
 import com.czx.h3facade.dto.UserRegisterDto;
 import com.czx.h3facade.dto.UserTokenDto;
 import com.czx.h3outbound.repository.AccountDaoI;
@@ -52,12 +54,37 @@ public class Account {
         return Account.builder().accountDto(acc).accountDao(accountDao).openIdsDao(openIdsDao).build();
     }
 
+    public static Account getAccount(UserTokenDto dto, AccountDaoI accountDao, OpenIdsDaoI openIdsDao){
+        AccountDto acc = AccountDto.builder().uid(dto.getName()).build();
+        return Account.builder().accountDto(acc).accountDao(accountDao).openIdsDao(openIdsDao).build();
+    }
+
+    public static Account findAccount(UserLoginDto dto, AccountDaoI accountDao, OpenIdsDaoI openIdsDao){
+        OpenIdsDto openIdsDto = openIdsDao.findBy(dto.getOpenId(), dto.getIdType());
+        if(openIdsDto == null){
+            log.info("User[{},{}] is not exist",dto.getOpenId(), dto.getIdType());
+            ErrorMsg msg = ErrorMsg.builder().code(404).subCode("USER.NOT.EXIST").sysServer("H3Center")
+                    .msg("Not Founded").subMsg("None such user").build();
+            throw new H3RuntimeException(msg);
+        }
+
+        AccountDto acc = accountDao.findByUid(openIdsDto.getUid());
+        if(acc == null){
+            log.error("User[{}] is not exist", openIdsDto.getUid());
+            ErrorMsg msg = ErrorMsg.builder().code(404).subCode("USER.NOT.EXIST").sysServer("H3Center")
+                    .msg("Not Founded").subMsg("None such user").build();
+            throw new H3RuntimeException(msg);
+        }
+
+        return Account.builder().accountDto(acc).accountDao(accountDao).openIdsDao(openIdsDao).build();
+    }
+
     public UserTokenDto createToken(HSTink hsTink){
         UserTokenDto token = new UserTokenDto();
         token.setName(accountDto.getUid());
         try{
-            token.setToken(hsTink.getTinkJwt().sign(H3SecurityUtil.getRand(),accountDto.getSalt()));
             token.setSessionKey(H3SecurityUtil.getRand());
+            token.setToken(hsTink.getTinkJwt().sign(token.getName(), token.getSessionKey()));
         }catch (Exception ex){
             log.error("createToken for={},exceptions:{}", accountDto.getUid(), ex.getMessage());
             ErrorMsg msg =  ErrorMsg.builder().code(400).subCode("CREATE.USER.FAILED").msg("create token failed")
@@ -67,12 +94,50 @@ public class Account {
         return token;
     }
 
+    public static void verifyToken(UserTokenDto token, HSTink hsTink){
+        try{
+            boolean verifyR = hsTink.getTinkJwt().verify(token.getToken(), token.getName(), token.getSessionKey());
+            if(verifyR == false){
+                log.info("verify token: uid={}, token={}, key={} failed", token.getName(), token.getToken(),
+                        token.getSessionKey());
+                ErrorMsg msg =  ErrorMsg.builder().code(400).subCode("VERIFY.TOKEN.FAILED").msg("TOKEN ERROR")
+                        .subMsg("TOKEN ERROR").sysServer("H3Center").build();
+                throw new H3RuntimeException(msg);
+            }
+        }catch (Exception ex){
+            if(ex instanceof H3RuntimeException){
+                throw ex;
+            }
+            log.info("verify token: uid={}, token={}, key={} exceptions:{}", token.getName(), token.getToken(),
+                    token.getSessionKey(), ex.getMessage());
+            ErrorMsg msg =  ErrorMsg.builder().code(400).subCode("VERIFY.TOKEN.FAILED").msg("Exception")
+                    .subMsg(ex.getMessage()).sysServer("H3Center").build();
+            throw new H3RuntimeException(msg);
+        }
+    }
+
+    public void verifyLogin(UserLoginDto dto){
+        String hMac = H3SecurityUtil.hMac(accountDto.getPwd(), dto.getSalt());
+        if(hMac.compareTo(dto.getKeySalt()) != 0){
+            log.info("KeySlat:{}, Salt:{}, hMac:{} is not equal", dto.getKeySalt(), dto.getSalt(), hMac);
+            ErrorMsg msg =  ErrorMsg.builder().code(400).subCode("AUTH.USER.FAILED").msg("Auth failed")
+                    .subMsg("Auth failed").sysServer("H3Center").build();
+            throw new H3RuntimeException(msg);
+        }
+    }
+
+    public void setGitAccount(ApplyHomeDto dto){
+        accountDto.setGitPwd(dto.getGitPwd());
+        accountDto.setGitAccount(dto.getGitAccount());
+        accountDto.setGitOpenFlag(dto.getGitFlag());
+        accountDao.updateAccount(accountDto);
+    }
+
     private Account(AccountDaoI accountDao, OpenIdsDaoI openIdsDao, AccountDto accountDto){
         this.accountDao = accountDao;
         this.openIdsDao = openIdsDao;
         this.accountDto = accountDto;
     }
-
 
     private static String createUid(){
         char start = 'A';

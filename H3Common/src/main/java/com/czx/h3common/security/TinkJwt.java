@@ -41,7 +41,7 @@ public class TinkJwt {
             }
             return r;
         }catch (Exception ex){
-
+            log.info("verify signData={}, data={}, aad={},exceptions:{}", signData, data, aad, ex.getMessage());
         }
         return false;
     }

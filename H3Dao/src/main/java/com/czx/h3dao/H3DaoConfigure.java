@@ -1,10 +1,8 @@
 package com.czx.h3dao;
 
-import com.czx.h3dao.repository.AccountDaoImpl;
-import com.czx.h3dao.repository.KeyVaultDaoImpl;
-import com.czx.h3dao.repository.OpenIdsDaoImpl;
-import com.czx.h3dao.repository.TransactionGuard;
+import com.czx.h3dao.repository.*;
 import com.czx.h3outbound.repository.AccountDaoI;
+import com.czx.h3outbound.repository.HomeNasDaoI;
 import com.czx.h3outbound.repository.KeyVaultDaoI;
 import com.czx.h3outbound.repository.OpenIdsDaoI;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +45,11 @@ public class H3DaoConfigure {
     @Bean
     public OpenIdsDaoI getOpenIdsDao(){
         return new OpenIdsDaoImpl();
+    }
+
+    @Bean
+    public HomeNasDaoI getHomeNasDao(){
+        return new HomeNasDaoImpl();
     }
 
     @Bean

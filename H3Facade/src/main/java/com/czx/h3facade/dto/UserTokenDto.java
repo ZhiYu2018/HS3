@@ -6,6 +6,5 @@ import lombok.Data;
 public class UserTokenDto {
     private String name;
     private String token;
-    private String home;
     private String sessionKey;
 }

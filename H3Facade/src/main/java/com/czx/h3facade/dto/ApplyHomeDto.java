@@ -1,8 +1,10 @@
 package com.czx.h3facade.dto;
 
+import lombok.Data;
+
+@Data
 public class ApplyHomeDto extends UserTokenDto{
-    private String home;
     private String gitAccount;
     private String gitPwd;
-    private Integer gitOpened;
+    private Short gitFlag;
 }

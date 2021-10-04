@@ -39,15 +39,8 @@ public class AccountDaoImpl implements AccountDaoI {
         H3Account h3Account = Converter.toH3Account(accountDto);
         h3Account.setStatus(ConstantsValue.ACCOUNT_STATUS_ENABLE);
         h3Account.setSysVer((int)System.currentTimeMillis()/1000);
-        try{
-            int value = mapper.insertSelective(h3Account);
-            return value;
-        }catch (DuplicateKeyException ex){
-            log.info("uid={} is exist", h3Account.getUid());
-            H3AccountExample example = new H3AccountExample();
-            example.createCriteria().andUidEqualTo(h3Account.getUid());
-            return mapper.updateByExampleSelective(h3Account, example);
-        }
+        int value = mapper.insertSelective(h3Account);
+        return value;
     }
 
     @Override

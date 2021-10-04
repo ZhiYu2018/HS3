@@ -1,10 +1,7 @@
 package com.czx.h3center.controller;
 
 import com.czx.h3facade.api.HomeSpaceI;
-import com.czx.h3facade.dto.Request;
-import com.czx.h3facade.dto.Response;
-import com.czx.h3facade.dto.SpaceDto;
-import com.czx.h3facade.dto.UserTokenDto;
+import com.czx.h3facade.dto.*;
 import com.czx.h3facade.vo.SpaceItemMeta;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +21,7 @@ public class HomeSpaceController implements HomeSpaceI {
     @Override
     @PostMapping("/create_space")
     @ResponseBody
-    public Response<String> createSpace(@RequestBody Request<String> request) {
+    public Response<String> createSpace(@RequestBody Request<CreateSpaceDto> request) {
         return null;
     }
 

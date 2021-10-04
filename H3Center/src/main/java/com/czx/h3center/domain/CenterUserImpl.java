@@ -19,7 +19,18 @@ public class CenterUserImpl implements CenterUserI {
 
     @Override
     public Response<UserTokenDto> LogIn(Request<UserLoginDto> request) {
-        return null;
+        Response<UserTokenDto> response = new Response<>();
+        response.setBizNo(request.getBizNo());
+        try{
+            Account account = accAggregator.findAccount(request.getData());
+            account.verifyLogin(request.getData());
+            response.setData(account.createToken(hsTink));
+            ErrorHelper.successResponse(response, "H3Center");
+        }catch (H3RuntimeException exception){
+            log.error("H3RuntimeException:{}", exception.getMessage());
+            ErrorHelper.setResponse(response, exception.getErrorMsg());
+        }
+        return response;
     }
 
     @Override
@@ -39,6 +50,16 @@ public class CenterUserImpl implements CenterUserI {
 
     @Override
     public Response<String> ApplyHome(Request<ApplyHomeDto> request) {
-        return null;
+        Response<String> response = new Response<>();
+        response.setBizNo(request.getBizNo());
+        try{
+            Account.verifyToken(request.getData(), hsTink);
+            Account account = accAggregator.getAccount(request.getData());
+            account.setGitAccount(request.getData());
+        }catch (H3RuntimeException exception){
+            log.error("H3RuntimeException:{}", exception.getMessage());
+            ErrorHelper.setResponse(response, exception.getErrorMsg());
+        }
+        return response;
     }
 }
