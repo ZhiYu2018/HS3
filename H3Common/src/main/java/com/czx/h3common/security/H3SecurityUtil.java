@@ -10,7 +10,9 @@ public class H3SecurityUtil {
         while(value > 0){
             int m = (int)(value % 52);
             if((m >= 26)){
-                sb.append('A' + (m - 26));
+                sb.append((char)('A' + (m - 26)));
+            }else{
+                sb.append((char)('a' + m));
             }
             value = value / 52;
         }
