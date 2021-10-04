@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: "H3Center"
+  pid:
+    fail-on-write-error: "H3Center.error"
+    file: "/var/logs/H3Center/app.pid"
+  datasource:
+    druid:
+      url: "jdbc:mysql://127.0.0.1:33066/h3_db?useUnicode=true&characterEncoding=UTF8"
+      username: "root"
+      password: "Simon2020@"
+      driver-class-name: "com.mysql.cj.jdbc.Driver"
+      initial-size: 5
+      max-active: 5
+      min-idle: 5
+      max-wait: 2000
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      validation-query: "SELECT 1 FROM DUAL"
+      validation-query-timeout: 1000
+      test-on-borrow: false
+      test-on-return: false
+      test-while-idle: true
+      time-between-eviction-runs-millis: 5000
+      min-evictable-idle-time-millis: 30000
+      max-evictable-idle-time-millis: 30000
+      filters: stat,log4j2
+      filter:
+        stat:
+          enabled: true
+          db-type: mysql
+          log-slow-sql: true
+          slow-sql-millis: 2000
+
+
+server:
+  port: 8080
+  jetty:
+    accesslog:
+      enabled: true
+      filename: "/var/logs/H3Center/gw.access"
+    threads:
+      acceptors: 2
+      max-queue-capacity: 100

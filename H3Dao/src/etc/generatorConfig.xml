@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="MySQLTables"  targetRuntime="MyBatis3">
+        <!--数据库连接驱动类,URL，用户名、密码 -->
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
+                        connectionURL="jdbc:mysql://127.0.0.1:33066/h3_db"
+                        userId="root" password="Simon2020@">
+        </jdbcConnection>
+
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="true"/>
+            <property name="useJSR310Types" value="true" />
+        </javaTypeResolver>
+
+        <javaModelGenerator targetPackage="com.czx.h3dao.po" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <!-- 生成XML映射文件的包名和位置-->
+        <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources" >
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <!-- 生成DAO接口的包名和位置-->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.czx.h3dao.mapper"  targetProject="src/main/java" >
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+        <table tableName="account"  domainObjectName="H3Account"/>
+        <table tableName="keyVault"  domainObjectName="H3KeyVault"/>
+        <table tableName="openIds"  domainObjectName="H3OpenIds"/>
+        <table tableName="HomeSpace"  domainObjectName="H3HomeSpace"/>
+    </context>
+</generatorConfiguration>
