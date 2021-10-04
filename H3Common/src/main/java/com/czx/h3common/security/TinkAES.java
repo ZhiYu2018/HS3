@@ -1,20 +1,17 @@
 package com.czx.h3common.security;
 
 import com.google.crypto.tink.*;
-import com.google.crypto.tink.aead.AeadConfig;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-@Slf4j
 public class TinkAES {
     private KeysetHandle keysetHandle;
     private Aead aead;
     public TinkAES() throws Exception {
-        AeadConfig.register();
+        TinkRegister.register();
         keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("AES128_GCM"));
         aead = keysetHandle.getPrimitive(Aead.class);
     }

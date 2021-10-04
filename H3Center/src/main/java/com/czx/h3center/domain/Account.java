@@ -1,9 +1,12 @@
 package com.czx.h3center.domain;
 
+import com.czx.h3common.security.H3SecurityUtil;
+import com.czx.h3common.security.HSTink;
 import com.czx.h3dao.repository.TransactionGuard;
 import com.czx.h3facade.Exceptions.ErrorMsg;
 import com.czx.h3facade.Exceptions.H3RuntimeException;
 import com.czx.h3facade.dto.UserRegisterDto;
+import com.czx.h3facade.dto.UserTokenDto;
 import com.czx.h3outbound.repository.AccountDaoI;
 import com.czx.h3outbound.repository.OpenIdsDaoI;
 import com.czx.h3outbound.repository.dto.AccountDto;
@@ -19,7 +22,7 @@ public class Account {
     private final OpenIdsDaoI openIdsDao;
     private final AccountDto accountDto;
 
-    public static Account create(UserRegisterDto dto, AccountDaoI accountDao, OpenIdsDaoI openIdsDao){
+    public static Account createAccount(UserRegisterDto dto, AccountDaoI accountDao, OpenIdsDaoI openIdsDao){
         OpenIdsDto openIdsDto = openIdsDao.findBy(dto.getUserId(), dto.getIdType());
         if(openIdsDto != null){
             log.info("User[{},{}] is exist",dto.getUserId(), dto.getIdType());
@@ -42,11 +45,26 @@ public class Account {
         if(r == Boolean.FALSE){
             log.error("Add user [{},{}] failed", dto.getUserId(), dto.getIdType());
             ErrorMsg msg = ErrorMsg.builder().code(400).subCode("CREATE.USER.FAILED").msg("create failed")
-                    .subMsg("").sysServer("H3Center").build();
+                    .subMsg("create failed").sysServer("H3Center").build();
             throw new H3RuntimeException(msg);
         }
 
         return Account.builder().accountDto(acc).accountDao(accountDao).openIdsDao(openIdsDao).build();
+    }
+
+    public UserTokenDto createToken(HSTink hsTink){
+        UserTokenDto token = new UserTokenDto();
+        token.setName(accountDto.getUid());
+        try{
+            token.setToken(hsTink.getTinkJwt().sign(H3SecurityUtil.getRand(),accountDto.getSalt()));
+            token.setSessionKey(H3SecurityUtil.getRand());
+        }catch (Exception ex){
+            log.error("createToken for={},exceptions:{}", accountDto.getUid(), ex.getMessage());
+            ErrorMsg msg =  ErrorMsg.builder().code(400).subCode("CREATE.USER.FAILED").msg("create token failed")
+                    .subMsg(ex.getMessage()).sysServer("H3Center").build();
+            throw new H3RuntimeException(msg);
+        }
+        return token;
     }
 
     private Account(AccountDaoI accountDao, OpenIdsDaoI openIdsDao, AccountDto accountDto){

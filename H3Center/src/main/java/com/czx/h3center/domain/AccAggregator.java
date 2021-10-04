@@ -16,7 +16,7 @@ public class AccAggregator {
     private OpenIdsDaoI openIdsDao;
 
     public Account createAccount(UserRegisterDto dto){
-        Account account = Account.create(dto, accountDao, openIdsDao);
+        Account account = Account.createAccount(dto, accountDao, openIdsDao);
         return account;
     }
 }

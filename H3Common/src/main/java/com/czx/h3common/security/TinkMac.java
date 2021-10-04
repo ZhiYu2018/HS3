@@ -1,7 +1,6 @@
 package com.czx.h3common.security;
 
 import com.google.crypto.tink.*;
-import com.google.crypto.tink.mac.MacConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -14,7 +13,7 @@ public class TinkMac {
     private KeysetHandle keysetHandle;
     private Mac mac;
     public TinkMac()throws Exception{
-        MacConfig.register();
+        TinkRegister.register();
         keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("HMAC_SHA256_128BITTAG"));
         mac = keysetHandle.getPrimitive(Mac.class);
     }

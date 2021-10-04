@@ -9,4 +9,11 @@ public class ErrorHelper {
         response.setMsg(errorMsg.getMsg());
         response.setSubMsg(errorMsg.getSubMsg());
     }
+
+    public static void successResponse(Response<?> response, String sysId){
+        response.setCode(200);
+        response.setMsg("Success");
+        response.setSubCode(sysId + ".SUCCESS");
+        response.setSubMsg("Success");
+    }
 }

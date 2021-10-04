@@ -1,7 +1,6 @@
 package com.czx.h3common.security;
 
 import com.google.crypto.tink.*;
-import com.google.crypto.tink.signature.SignatureConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -17,7 +16,7 @@ public class TinkDigital {
     private PublicKeyVerify verifier;
 
     public TinkDigital() throws Exception{
-        SignatureConfig.register();
+        TinkRegister.register();
         privateKeysetHandle = KeysetHandle.generateNew(KeyTemplates.get("ECDSA_P256"));
         signer = privateKeysetHandle.getPrimitive(PublicKeySign.class);
         publicKeysetHandle = privateKeysetHandle.getPublicKeysetHandle();

@@ -1,5 +1,6 @@
 package com.czx.h3center.domain;
 
+import com.czx.h3common.security.HSTink;
 import com.czx.h3facade.Exceptions.ErrorHelper;
 import com.czx.h3facade.Exceptions.H3RuntimeException;
 import com.czx.h3facade.api.CenterUserI;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Service;
 public class CenterUserImpl implements CenterUserI {
     @Autowired
     private AccAggregator accAggregator;
+    @Autowired
+    private HSTink hsTink;
+
     @Override
     public Response<UserTokenDto> LogIn(Request<UserLoginDto> request) {
         return null;
@@ -24,6 +28,8 @@ public class CenterUserImpl implements CenterUserI {
         response.setBizNo(request.getBizNo());
         try {
             Account account = accAggregator.createAccount(request.getData());
+            response.setData(account.createToken(hsTink));
+            ErrorHelper.successResponse(response, "H3Center");
         }catch (H3RuntimeException exception){
             log.error("H3RuntimeException:{}", exception.getMessage());
             ErrorHelper.setResponse(response, exception.getErrorMsg());

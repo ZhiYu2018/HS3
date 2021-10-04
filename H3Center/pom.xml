@@ -46,6 +46,10 @@
             <groupId>com.czx</groupId>
             <artifactId>H3Dao</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.czx</groupId>
+            <artifactId>H3Common</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
