@@ -8,17 +8,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class TinkAES {
+    private final static String KEY_SET_NAME = TinkAES.class.getSimpleName().toLowerCase();
     private KeysetHandle keysetHandle;
     private Aead aead;
     public TinkAES() throws Exception {
         TinkRegister.register();
-        keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("AES128_GCM"));
-        aead = keysetHandle.getPrimitive(Aead.class);
-    }
+        keysetHandle = TinkKeyManager.getKeySetHandle(TinkAES.class.getSimpleName());
+        if(keysetHandle == null) {
+            keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("AES128_GCM"));
+            TinkKeyManager.StoringKeys(KEY_SET_NAME, keysetHandle);
+        }
 
-    public void StoringKeys() throws Exception {
-        String keysetFilename = "aes_keyset.json";
-        CleartextKeysetHandle.write(keysetHandle, JsonKeysetWriter.withFile(new File(keysetFilename)));
+        aead = keysetHandle.getPrimitive(Aead.class);
     }
 
     public String encrypt(String rawText, String aad) throws Exception{

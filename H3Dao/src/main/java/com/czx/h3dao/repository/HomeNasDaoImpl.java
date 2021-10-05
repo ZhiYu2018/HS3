@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +47,7 @@ public class HomeNasDaoImpl implements HomeNasDaoI {
         }catch (DuplicateKeyException ex){
             log.info("Key=[{},{}] is exist", homeNasDto.getUid(), homeNasDto.getHome());
             homeSpace.setModifyTime(LocalDateTime.now());
+            homeSpace.setHomeSalt(null);
             return mapper.updateByPrimaryKeySelective(homeSpace);
         }
     }

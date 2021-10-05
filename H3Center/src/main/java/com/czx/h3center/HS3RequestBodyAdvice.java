@@ -33,7 +33,7 @@ public class HS3RequestBodyAdvice extends RequestBodyAdviceAdapter {
     @Override
     public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter, Type targetType,
                                 Class<? extends HttpMessageConverter<?>> converterType) {
-        Request<Object> request = (Request<Object>)body;
+        Request<?> request = (Request<?>)body;
         if(request.getData() instanceof UserTokenDto){
             log.info("verify token .......");
             Account.verifyToken((UserTokenDto)request.getData(), hsTink);

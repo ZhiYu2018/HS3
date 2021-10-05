@@ -1,15 +1,18 @@
 package com.czx.h3common.security;
 
-import com.google.crypto.tink.*;
+import com.google.crypto.tink.KeyTemplates;
+import com.google.crypto.tink.KeysetHandle;
+import com.google.crypto.tink.PublicKeySign;
+import com.google.crypto.tink.PublicKeyVerify;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Slf4j
 public class TinkDigital {
+    private final static String KEY_SET_NAME = TinkDigital.class.getSimpleName().toLowerCase();
     private KeysetHandle privateKeysetHandle;
     private PublicKeySign signer;
     private KeysetHandle publicKeysetHandle;
@@ -17,16 +20,15 @@ public class TinkDigital {
 
     public TinkDigital() throws Exception{
         TinkRegister.register();
-        privateKeysetHandle = KeysetHandle.generateNew(KeyTemplates.get("ECDSA_P256"));
+        privateKeysetHandle = TinkKeyManager.getKeySetHandle(KEY_SET_NAME);
+        if(privateKeysetHandle == null){
+            privateKeysetHandle = KeysetHandle.generateNew(KeyTemplates.get("ECDSA_P256"));
+            TinkKeyManager.StoringKeys(KEY_SET_NAME, privateKeysetHandle);
+        }
+
         signer = privateKeysetHandle.getPrimitive(PublicKeySign.class);
         publicKeysetHandle = privateKeysetHandle.getPublicKeysetHandle();
         verifier = publicKeysetHandle.getPrimitive(PublicKeyVerify.class);
-    }
-
-    public void StoringKeys() throws Exception {
-        String keysetFilename = "digital_keyset.json";
-        CleartextKeysetHandle.write(privateKeysetHandle, JsonKeysetWriter.withFile(new File(keysetFilename)));
-        CleartextKeysetHandle.write(publicKeysetHandle, JsonKeysetWriter.withFile(new File("digital_p_keyset.json")));
     }
 
     public String sign(String data)throws Exception{

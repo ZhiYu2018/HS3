@@ -55,6 +55,7 @@ public class CenterUserImpl implements CenterUserI {
         try{
             Account account = accAggregator.getAccount(request.getData());
             account.setGitAccount(request.getData());
+            response.setData("ApplyHome success");
             ErrorHelper.successResponse(response, "H3Center");
         }catch (H3RuntimeException exception){
             log.error("H3RuntimeException:{}", exception.getMessage());

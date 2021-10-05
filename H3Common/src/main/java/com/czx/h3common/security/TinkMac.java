@@ -10,17 +10,17 @@ import java.util.Base64;
 
 @Slf4j
 public class TinkMac {
+    private final static String KEY_SET_NAME = TinkMac.class.getSimpleName().toLowerCase();
     private KeysetHandle keysetHandle;
     private Mac mac;
     public TinkMac()throws Exception{
         TinkRegister.register();
-        keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("HMAC_SHA256_128BITTAG"));
+        keysetHandle = TinkKeyManager.getKeySetHandle(KEY_SET_NAME);
+        if(keysetHandle == null) {
+            keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("HMAC_SHA256_128BITTAG"));
+            TinkKeyManager.StoringKeys(KEY_SET_NAME, keysetHandle);
+        }
         mac = keysetHandle.getPrimitive(Mac.class);
-    }
-
-    public void StoringKeys() throws Exception {
-        String keysetFilename = "mac_keyset.json";
-        CleartextKeysetHandle.write(keysetHandle, JsonKeysetWriter.withFile(new File(keysetFilename)));
     }
 
     public String computeMac(String data)throws Exception{
