@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class UserLoginDto {
-    private Short IdType;
+    private Short idType;
     private String openId;
     private String salt;
     private String keySalt;

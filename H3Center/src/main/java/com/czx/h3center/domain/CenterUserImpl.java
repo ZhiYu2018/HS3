@@ -53,9 +53,9 @@ public class CenterUserImpl implements CenterUserI {
         Response<String> response = new Response<>();
         response.setBizNo(request.getBizNo());
         try{
-            Account.verifyToken(request.getData(), hsTink);
             Account account = accAggregator.getAccount(request.getData());
             account.setGitAccount(request.getData());
+            ErrorHelper.successResponse(response, "H3Center");
         }catch (H3RuntimeException exception){
             log.error("H3RuntimeException:{}", exception.getMessage());
             ErrorHelper.setResponse(response, exception.getErrorMsg());
