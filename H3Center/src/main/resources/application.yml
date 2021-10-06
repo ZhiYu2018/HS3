@@ -31,7 +31,9 @@ spring:
           db-type: mysql
           log-slow-sql: true
           slow-sql-millis: 2000
-
+hs3:
+  dao:
+    enable: "true"
 
 server:
   port: 8080

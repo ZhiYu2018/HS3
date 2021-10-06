@@ -8,12 +8,14 @@ import com.czx.h3outbound.repository.OpenIdsDaoI;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.MybatisProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(prefix = "hs3.dao", value = "enable", havingValue = "true", matchIfMissing = false)
 @MapperScan("com.czx.h3dao.mapper")
 @Slf4j
 public class H3DaoConfigure {

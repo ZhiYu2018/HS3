@@ -37,8 +37,9 @@ public class HS3RequestBodyAdvice extends RequestBodyAdviceAdapter {
         if(request.getData() instanceof UserTokenDto){
             log.info("verify token .......");
             Account.verifyToken((UserTokenDto)request.getData(), hsTink);
+        }else {
+            log.info("Do not need verify token .......");
         }
-        log.info("Do not need verify token .......");
         return body;
     }
 }

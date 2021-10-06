@@ -1,6 +1,8 @@
 package com.czx.h3common.security;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.crypto.cipher.CryptoCipher;
@@ -14,6 +16,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
@@ -80,6 +83,12 @@ public class H3SecurityUtil {
         Mac mac = HmacUtils.getInitializedMac(HmacAlgorithms.HMAC_SHA_256, getUTF8Bytes(aad));
         byte [] dig = mac.doFinal(getUTF8Bytes(data));
         return Base64.getEncoder().encodeToString(dig);
+    }
+
+    public static String sha1(String content){
+        MessageDigest digest = DigestUtils.getSha1Digest();
+        byte [] dig = digest.digest(content.getBytes());
+        return Hex.encodeHexString(dig);
     }
 
     public static String getSalt(){

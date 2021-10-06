@@ -54,5 +54,7 @@ public class TinkTests{
 
         System.out.println("hmac:" + H3SecurityUtil.hMac(data, "czx"));
         System.out.println("Salt:" + H3SecurityUtil.getSalt());
+
+
     }
 }
