@@ -1,5 +1,6 @@
 package com.czx.h3common.git.dto;
 
+import com.czx.h3common.git.vo.RefObj;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,10 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GitTreeDto {
-    private String path;
-    private String mode;
-    private String type;
-    private String sha;
-    private String content;
+public class RefDto {
+    private String ref;
+    private String node_id;
+    private String url;
+    private RefObj object;
 }

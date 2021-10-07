@@ -56,13 +56,17 @@ public class HS3Github {
         gitHub.deleteFile(fileVo.getOwner(), fileVo.getRepo(), fileVo.getPath(), dto);
     }
 
-    public static TreeDto createDirTree(TreeVo vo, GitHub gitHub){
+    public static TreeDto createTree(TreeVo vo, GitHub gitHub){
         GitTreeDto dto = GitTreeDto.builder().mode(vo.getMode().getMode()).path(vo.getPath()).build();
         switch (vo.getMode()){
             case FILE_BLOB:
             case EXE_BLOB:{
-                dto.setContent(Base64.getEncoder().encodeToString(vo.getContent()));
                 dto.setType(TreeType.BLOB.lowName());
+                if(vo.getContent() != null) {
+                    dto.setContent(Base64.getEncoder().encodeToString(vo.getContent()));
+                }else{
+                    dto.setSha(vo.getSha());
+                }
                 break;
             }
             case SUB_DIR:{
@@ -79,7 +83,7 @@ public class HS3Github {
 
         List<GitTreeDto> treeDtoList = new ArrayList<>();
         treeDtoList.add(dto);
-        CreateTreeDto treeDto = CreateTreeDto.builder().tree(treeDtoList).build();
+        CreateTreeDto treeDto = CreateTreeDto.builder().base_tree(vo.getBase_sha()).tree(treeDtoList).build();
         return gitHub.createTree(vo.getOwner(), vo.getRepo(), treeDto);
     }
 

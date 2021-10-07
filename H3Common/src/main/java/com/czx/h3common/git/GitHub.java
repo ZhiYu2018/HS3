@@ -59,12 +59,13 @@ public interface GitHub {
     @Headers("Accept: application/vnd.github.v3+json")
     TreeDto getGitTree(@Param("owner") String owner,
                        @Param("repo") String repo,
-                       @Param("tree_sha") String sha);
+                       @Param("tree_sha") String sha,
+                       @QueryMap Map<String,Object> query);
 
 
     @RequestLine("POST /repos/{owner}/{repo}/git/blobs")
     @Headers("Accept: application/vnd.github.v3+json")
-    Map<String, Object> createBlob(@Param("owner") String owner,
+    BlobDto createBlob(@Param("owner") String owner,
                                    @Param("repo") String repo,
                                    BlobDto blob);
 
@@ -73,5 +74,32 @@ public interface GitHub {
     BlobDto getBlob(@Param("owner") String owner,
                     @Param("repo") String repo,
                     @Param("file_sha") String sha);
+
+    @RequestLine("GET /repos/{owner}/{repo}/git/ref/{ref}")
+    @Headers("Accept: application/vnd.github.v3+json")
+    RefDto getRef(@Param("owner") String owner,
+                  @Param("repo") String repo,
+                  @Param("ref") String ref);
+
+    @RequestLine("POST /repos/{owner}/{repo}/git/refs/{ref}")
+    @Headers("Accept: application/vnd.github.v3+json")
+    RefDto updateRef(@Param("owner") String owner,
+                     @Param("repo") String repo,
+                     @Param("ref") String ref,
+                     Map<String, Object> content);
+
+
+    @RequestLine("GET /repos/{owner}/{repo}/git/commits/{commit_sha}")
+    @Headers("Accept: application/vnd.github.v3+json")
+    CommitDto getCommit(@Param("owner") String owner,
+                        @Param("repo") String repo,
+                        @Param("commit_sha") String commit_sha);
+
+
+    @RequestLine("POST /repos/{owner}/{repo}/git/commits")
+    @Headers("Accept: application/vnd.github.v3+json")
+    CommitDto createCommit(@Param("owner") String owner,
+                           @Param("repo") String repo,
+                           Map<String, Object> content);
 
 }

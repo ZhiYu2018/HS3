@@ -1,4 +1,4 @@
-package com.czx.h3common.git.dto;
+package com.czx.h3common.git.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GitTreeDto {
-    private String path;
-    private String mode;
+public class RefObj {
     private String type;
     private String sha;
-    private String content;
+    private String url;
 }

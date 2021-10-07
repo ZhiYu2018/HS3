@@ -11,6 +11,7 @@ public class TreeVo {
     private String path;
     private String salt;
     private String sha;
+    private String base_sha;
     private TreeMode mode;
     private byte [] content;
 }

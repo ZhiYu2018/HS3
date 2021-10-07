@@ -12,5 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateTreeDto {
+    private String base_tree;
     private List<GitTreeDto> tree;
 }

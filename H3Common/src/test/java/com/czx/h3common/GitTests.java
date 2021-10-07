@@ -1,9 +1,11 @@
 package com.czx.h3common;
 
 import com.czx.h3common.git.GitHub;
+import com.czx.h3common.git.HS3Fs;
 import com.czx.h3common.git.HS3Github;
 import com.czx.h3common.git.dto.*;
 import com.czx.h3common.git.vo.FileVo;
+import com.czx.h3common.git.vo.TreeInfo;
 import com.czx.h3common.git.vo.TreeMode;
 import com.czx.h3common.git.vo.TreeVo;
 import com.google.gson.Gson;
@@ -11,9 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class GitTests {
     private Gson gson;
@@ -56,15 +57,72 @@ public class GitTests {
 
     @Test
     public void testGitTree(){
-        TreeVo vo = TreeVo.builder().mode(TreeMode.SUB_DIR).sha("520541f3b5f86073773fe6f54a37221b6af9772b").owner(owner).path("czx").repo(repo).build();
-        TreeDto dto = HS3Github.createDirTree(vo, gitHub);
-        System.out.println(gson.toJson(dto));
+        String content = "Hello czx, this is a file";
+        TreeVo vo = TreeVo.builder().mode(TreeMode.FILE_BLOB).content(Base64.getEncoder()
+                .encode(content.getBytes(StandardCharsets.UTF_8))).owner(owner).path("picture/cyr.txt").repo(repo).build();
+        HS3Fs.createFile(vo, gitHub);
+    }
+
+    @Test
+    public void testCreateDir(){
+        TreeVo vo = TreeVo.builder().mode(TreeMode.SUB_DIR).owner(owner).path("picture").repo(repo).build();
+        HS3Fs.createDir(vo, gitHub);
+    }
+
+    @Test
+    public void testCreateCommit(){
+        Map<String,Object> content = new HashMap<>();
+        content.put("tree", "d3af643ff3460c519ce6ff1a491f010e8b04df9e");
+        content.put("message", "commit a tree");
+        CommitDto commitDto = gitHub.createCommit(owner, repo, content);
+        System.out.println(gson.toJson(commitDto));
     }
 
     @Test
     public void testBlob(){
-        BlobDto blobDto = BlobDto.builder().content("Hello, this is blob").encoding("utf-8").build();
-        Map<String, Object> map = gitHub.createBlob(owner,repo,blobDto);
+        String content = "Hello, this is blob";
+        BlobDto blobDto = BlobDto.builder().content(Base64.getEncoder()
+                .encodeToString(content.getBytes(StandardCharsets.UTF_8))).encoding("base64").build();
+        BlobDto map = gitHub.createBlob(owner,repo,blobDto);
         System.out.println(gson.toJson(map));
+    }
+
+    @Test
+    public void testGetBlog() {
+        String sha = "520541f3b5f86073773fe6f54a37221b6af9772b";
+        BlobDto blobDto = gitHub.getBlob(owner, repo, sha);
+        String content = blobDto.getContent().trim();
+        System.out.println("[" + content + ']');
+        System.out.println(new String(Base64.getDecoder().decode(content), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testGetRef(){
+        RefDto refDto = gitHub.getRef(owner, repo, "heads/master");
+        System.out.println(gson.toJson(refDto));
+        CommitDto commitDto = gitHub.getCommit(owner, repo, refDto.getObject().getSha());
+        System.out.println(gson.toJson(commitDto));
+    }
+
+    @Test
+    public void testUpdateRef(){
+        Map<String,Object> content = new HashMap<>();
+        content.put("sha", "0c1be45a07d43c259a0b23294dcc892c79ce90ab");
+        content.put("force", Boolean.TRUE);
+        RefDto refDto = gitHub.updateRef(owner, repo, "heads/master", content);
+        System.out.println(gson.toJson(refDto));
+    }
+
+    @Test
+    public void testGetTree(){
+        RefDto refDto = gitHub.getRef(owner, repo, "heads/master");
+        CommitDto commitDto = gitHub.getCommit(owner, repo, refDto.getObject().getSha());
+        System.out.println(gson.toJson(commitDto));
+        Map<String,Object> q = new HashMap<>();
+        q.put("recursive", "true");
+        TreeDto treeDto = gitHub.getGitTree(owner, repo, refDto.getObject().getSha(), q);
+        for(TreeInfo ti: treeDto.getTree()) {
+            System.out.println(">>" + gson.toJson(ti));
+        }
     }
 }

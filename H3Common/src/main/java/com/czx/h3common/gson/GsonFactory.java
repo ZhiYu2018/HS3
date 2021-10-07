@@ -24,6 +24,6 @@ final class GsonFactory {
             Type type = resolveLastTypeParameter(adapter.getClass(), TypeAdapter.class);
             builder.registerTypeAdapter(type, adapter);
         }
-        return builder.create();
+        return builder.disableHtmlEscaping().create();
     }
 }
