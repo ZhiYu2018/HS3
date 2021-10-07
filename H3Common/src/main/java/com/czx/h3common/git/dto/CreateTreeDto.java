@@ -1,6 +1,5 @@
 package com.czx.h3common.git.dto;
 
-import com.czx.h3common.git.vo.TreeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,9 +11,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TreeDto {
-    private String sha;
-    private String url;
-    private Boolean truncated;
-    private List<TreeInfo> tree;
+public class CreateTreeDto {
+    private List<GitTreeDto> tree;
 }

@@ -1,22 +1,17 @@
 package com.czx.h3common.git;
 
-import com.czx.h3common.git.dto.FileDto;
-import com.czx.h3common.git.dto.FileMetaDto;
+import com.czx.h3common.git.dto.*;
 import com.czx.h3common.git.vo.FileVo;
+import com.czx.h3common.git.vo.TreeType;
+import com.czx.h3common.git.vo.TreeVo;
 import com.czx.h3common.gson.GsonDecoder;
 import com.czx.h3common.gson.GsonEncoder;
-import com.czx.h3common.security.H3SecurityUtil;
 import feign.Feign;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 
-import java.security.MessageDigest;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class HS3Github {
@@ -59,6 +54,33 @@ public class HS3Github {
         committer.put("email","hs3@126.com");
         FileDto dto = FileDto.builder().committer(committer).message("Delete file").sha(fileVo.getSha()).build();
         gitHub.deleteFile(fileVo.getOwner(), fileVo.getRepo(), fileVo.getPath(), dto);
+    }
+
+    public static TreeDto createDirTree(TreeVo vo, GitHub gitHub){
+        GitTreeDto dto = GitTreeDto.builder().mode(vo.getMode().getMode()).path(vo.getPath()).build();
+        switch (vo.getMode()){
+            case FILE_BLOB:
+            case EXE_BLOB:{
+                dto.setContent(Base64.getEncoder().encodeToString(vo.getContent()));
+                dto.setType(TreeType.BLOB.lowName());
+                break;
+            }
+            case SUB_DIR:{
+                dto.setSha(vo.getSha());
+                dto.setType(TreeType.TREE.lowName());
+            }
+            case SUB_MODULE:{
+                dto.setType(TreeType.COMMIT.lowName());
+            }
+            case SYMLINK:{
+                dto.setType(TreeType.BLOB.lowName());
+            }
+        }
+
+        List<GitTreeDto> treeDtoList = new ArrayList<>();
+        treeDtoList.add(dto);
+        CreateTreeDto treeDto = CreateTreeDto.builder().tree(treeDtoList).build();
+        return gitHub.createTree(vo.getOwner(), vo.getRepo(), treeDto);
     }
 
 }

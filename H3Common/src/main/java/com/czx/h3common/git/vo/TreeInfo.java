@@ -1,4 +1,4 @@
-package com.czx.h3common.git.dto;
+package com.czx.h3common.git.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

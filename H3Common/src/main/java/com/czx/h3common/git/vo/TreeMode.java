@@ -1,4 +1,4 @@
-package com.czx.h3common.git.dto;
+package com.czx.h3common.git.vo;
 
 public enum TreeMode {
     FILE_BLOB("100644"),
@@ -10,4 +10,8 @@ public enum TreeMode {
         this.mode = mode;
     }
     private String mode;
+
+    public String getMode() {
+        return mode;
+    }
 }

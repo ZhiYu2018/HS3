@@ -51,13 +51,27 @@ public interface GitHub {
 
     @RequestLine("POST /repos/{owner}/{repo}/git/trees")
     @Headers("Accept: application/vnd.github.v3+json")
-    Map<String,Object> createTree(@Param("owner") String owner,
-                                  @Param("repo") String repo,
-                                  Map<String,List<GitTreeDto>> tree);
+    TreeDto createTree(@Param("owner") String owner,
+                       @Param("repo") String repo,
+                       CreateTreeDto tree);
 
     @RequestLine("GET /repos/{owner}/{repo}/git/trees/{tree_sha}")
     @Headers("Accept: application/vnd.github.v3+json")
     TreeDto getGitTree(@Param("owner") String owner,
                        @Param("repo") String repo,
                        @Param("tree_sha") String sha);
+
+
+    @RequestLine("POST /repos/{owner}/{repo}/git/blobs")
+    @Headers("Accept: application/vnd.github.v3+json")
+    Map<String, Object> createBlob(@Param("owner") String owner,
+                                   @Param("repo") String repo,
+                                   BlobDto blob);
+
+    @RequestLine("GET /repos/{owner}/{repo}/git/blobs/{file_sha}")
+    @Headers("Accept: application/vnd.github.v3+json")
+    BlobDto getBlob(@Param("owner") String owner,
+                    @Param("repo") String repo,
+                    @Param("file_sha") String sha);
+
 }
