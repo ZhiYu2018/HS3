@@ -121,6 +121,8 @@ public class GitHubFile implements HS3File {
                 .owner(usi.getOwner()).salt(spaceMeta.getSalt()).path(segName).parent(spaceMeta.getPath()).build();
         try{
             HS3Fs.createFile(vo, gitHub);
+            offset += segBuffer.position();
+            segBuffer.reset();
         }catch (Exception ex){
             log.warn("Write segment={}, exceptions:{}", segName, ex.getMessage());
             throw HS3OfsExceptions.of(ex.getMessage());
