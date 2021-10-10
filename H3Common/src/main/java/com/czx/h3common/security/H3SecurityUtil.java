@@ -1,5 +1,7 @@
 package com.czx.h3common.security;
 
+import com.czx.h3common.security.vo.SaltVo;
+import com.czx.h3common.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -24,6 +26,15 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 public class H3SecurityUtil {
+    private static volatile HSTink hsTink;
+    public static void setHsTink(HSTink tink){
+        hsTink = tink;
+    }
+
+    public static HSTink getHsTink(){
+        return hsTink;
+    }
+
     public static String getRand(){
         ThreadLocalRandom random = ThreadLocalRandom.current();
         long value = random.nextLong(0, Long.MAX_VALUE);
@@ -40,14 +51,28 @@ public class H3SecurityUtil {
         return sb.toString();
     }
 
+    public static String AESEncryptFile(byte []input, String aad)throws Exception{
+        byte [] aadBuf = Base64.getDecoder().decode(aad);
+        Helper.OfsAssert((aadBuf.length == 48), "aad len is error");
+        byte [] bKey = new byte[16];
+        byte [] bIv = new byte[32];
+        copyTo(aadBuf, bKey, 0, 0, bKey.length);
+        copyTo(aadBuf, bIv, 0 + bKey.length, 0, bIv.length);
+        return _AESEncrypt(bKey, bIv, input);
+    }
+
     public static String AESEncrypt(String data, String aad)throws Exception{
         byte[] aadKey = getAESKey(aad);
-        SecretKeySpec key = new SecretKeySpec(aadKey,"AES");
-        IvParameterSpec iv = new IvParameterSpec(aadKey);
+        byte[] input = getUTF8Bytes(data);
+        return _AESEncrypt(aadKey, aadKey, input);
+    }
+
+    private static String _AESEncrypt(byte [] bKey, byte [] bIv, byte []input)throws Exception{
+        SecretKeySpec key = new SecretKeySpec(bKey,"AES");
+        IvParameterSpec iv = new IvParameterSpec(bIv);
         Properties properties = new Properties();
         String transform = "AES/CBC/PKCS5Padding";
         try(CryptoCipher encipher = Utils.getCipherInstance(transform, properties)) {
-            byte[] input = getUTF8Bytes(data);
             byte[] output = new byte[input.length * 5];
             encipher.init(Cipher.ENCRYPT_MODE, key, iv);
             int updateBytes = encipher.update(input, 0, input.length, output, 0);
@@ -55,7 +80,7 @@ public class H3SecurityUtil {
             byte[] keyBytes = Arrays.copyOf(output, updateBytes+finalBytes);
             return Base64.getEncoder().encodeToString(keyBytes);
         }catch (Exception ex){
-            log.info("AESEncrypt data={},aad={},exceptions:{}", data, aad, ex.getMessage());
+            log.info("_AESEncrypt exceptions:{}", ex.getMessage());
             throw ex;
         }
     }
@@ -91,23 +116,26 @@ public class H3SecurityUtil {
         return Hex.encodeHexString(dig);
     }
 
-    public static String getSalt(){
-        byte[] key = new byte[16];
-        byte[] iv = new byte[32];
+    public static SaltVo getSaltVo(){
+        SaltVo saltVo = new SaltVo();
         Properties properties = new Properties();
-        properties.put(CryptoRandomFactory.DEVICE_FILE_PATH_DEFAULT,
-                CryptoRandomFactory.RandomProvider.OPENSSL.getClassName());
+        properties.put(CryptoRandomFactory.DEVICE_FILE_PATH_DEFAULT,CryptoRandomFactory.RandomProvider.OPENSSL.getClassName());
         try (CryptoRandom random = CryptoRandomFactory.getCryptoRandom(properties)) {
-            random.nextBytes(key);
-            random.nextBytes(iv);
-            byte[] salt = new byte[48];
-            copyTo(key, salt, 0, 0, key.length);
-            copyTo(iv, salt, 0, key.length, iv.length);
-            return Base64.getEncoder().encodeToString(salt);
+            random.nextBytes(saltVo.getKey());
+            random.nextBytes(saltVo.getIv());
+            return saltVo;
         }catch (Exception ex){
             log.info("getSalt exceptions:{}", ex.getMessage());
             return null;
         }
+    }
+
+    public static String getSalt(){
+        SaltVo saltVo = getSaltVo();
+        byte[] salt = new byte[48];
+        copyTo(saltVo.getKey(), salt, 0, 0, saltVo.getKey().length);
+        copyTo(saltVo.getIv(), salt, 0, saltVo.getKey().length, saltVo.getIv().length);
+        return Base64.getEncoder().encodeToString(salt);
     }
 
     private static void copyTo(byte [] src, byte [] tgt, int o, int n, int len){

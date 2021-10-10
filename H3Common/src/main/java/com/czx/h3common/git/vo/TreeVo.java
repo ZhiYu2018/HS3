@@ -9,9 +9,8 @@ public class TreeVo {
     private String owner;
     private String repo;
     private String path;
-    private String salt;
-    private String sha;
     private String base_sha;
     private TreeMode mode;
-    private byte [] content;
+    private String content;
+    private String returnSha;
 }

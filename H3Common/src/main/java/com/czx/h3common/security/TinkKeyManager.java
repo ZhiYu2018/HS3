@@ -35,7 +35,7 @@ public class TinkKeyManager {
         try {
             File subDir = new File(path, name);
             subDir.mkdirs();
-            String fileName = String.format("%d.json", System.currentTimeMillis()/1000);
+            String fileName = String.format("%s.json", name);
             CleartextKeysetHandle.write(keysetHandle, JsonKeysetWriter.withFile(new File(subDir, fileName)));
             log.info("StoringKeys name={}, fileName={} OK", name, fileName);
         }catch (Exception t){
@@ -61,16 +61,6 @@ public class TinkKeyManager {
                 target = file;
                 time = file.lastModified();
                 continue;
-            }else{
-                log.info("Delete file:{}, Return:{}", file.getName(), file.delete());
-            }
-        }
-
-        if(target != null) {
-            long diff = (System.currentTimeMillis() - target.lastModified()) / 1000;
-            if(diff >= FILE_TIME_LIVE_SEC) {
-                log.info("Delete too old file={}, diff={} sec, return:{}", target.getName(), diff, target.delete());
-                target = null;
             }
         }
         return target;

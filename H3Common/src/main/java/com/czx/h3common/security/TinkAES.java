@@ -22,6 +22,19 @@ public class TinkAES {
         aead = keysetHandle.getPrimitive(Aead.class);
     }
 
+    public String encryptII(byte[] rawText, String aad)throws Exception{
+        Charset utf8 = StandardCharsets.UTF_8;
+        byte[] keyBytes = aead.encrypt(rawText, aad.getBytes(utf8));
+        return Base64.getEncoder().encodeToString(keyBytes);
+    }
+
+    public byte []decryptII(String key, String aad)throws Exception{
+        Charset utf8 = StandardCharsets.UTF_8;
+        byte[] keyBytes = Base64.getDecoder().decode(key.getBytes());
+        byte[] decrypted = aead.decrypt(keyBytes, aad.getBytes(utf8));
+        return decrypted;
+    }
+
     public String encrypt(String rawText, String aad) throws Exception{
         Charset utf8 = StandardCharsets.UTF_8;
         byte[] keyBytes = aead.encrypt(rawText.getBytes(utf8), aad.getBytes(utf8));

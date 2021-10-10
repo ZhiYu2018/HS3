@@ -18,6 +18,7 @@ public class HSTink {
             tinkDigital = new TinkDigital();
             tinkMac = new TinkMac();
             tinkJwt = new TinkJwt(tinkHybrid);
+            H3SecurityUtil.setHsTink(this);
         }catch (Exception ex){
             log.error("HSTink exceptions:{}", ex.getMessage());
         }

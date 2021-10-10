@@ -1,15 +1,18 @@
 package com.czx.h3common.git;
 
-import com.czx.h3common.git.dto.BlobDto;
 import com.czx.h3common.git.dto.CommitDto;
 import com.czx.h3common.git.dto.RefDto;
 import com.czx.h3common.git.dto.TreeDto;
+import com.czx.h3common.git.vo.FileContentVo;
 import com.czx.h3common.git.vo.TreeMode;
 import com.czx.h3common.git.vo.TreeVo;
+import com.czx.h3common.security.H3SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class HS3Fs {
@@ -24,9 +27,11 @@ public class HS3Fs {
         vo.setPath(vo.getPath() + "/meta.data");
         vo.setMode(TreeMode.FILE_BLOB);
         String meta = "{}";
-        vo.setContent(Base64.getEncoder().encode(meta.getBytes(StandardCharsets.UTF_8)));
+        vo.setContent(meta);
         TreeDto dto = HS3Github.createTree(vo, gitHub);
+        vo.setReturnSha(dto.getSha());
         log.info("Tree.sha:{}", dto.getSha());
+
 
         Map<String,Object> content = new HashMap<>();
         List<String> parent = new ArrayList<>();
@@ -44,23 +49,27 @@ public class HS3Fs {
         log.info("Update ref sha:{}", refDto.getObject().getSha());
     }
 
-    public static void createFile(TreeVo vo, GitHub gitHub){
+    public static void createFile(FileContentVo vo, GitHub gitHub) throws Exception {
         RefDto refDto = gitHub.getRef(vo.getOwner(), vo.getRepo(), "heads/master");
         log.info("Get ref sha:{}", refDto.getObject().getSha());
 
         CommitDto commitDto = gitHub.getCommit(vo.getOwner(), vo.getRepo(), refDto.getObject().getSha());
         log.info("Get commit tree.sha:{}", commitDto.getTree().getSha());
 
-
-        vo.setBase_sha(commitDto.getTree().getSha());
-        TreeDto dto = HS3Github.createTree(vo, gitHub);
-        log.info("Tree.sha:{}", dto.getSha());
+        TreeVo tVo = TreeVo.builder().build();
+        tVo.setBase_sha(commitDto.getTree().getSha());
+        tVo.setMode(TreeMode.FILE_BLOB);
+        tVo.setPath(getPath(vo.getParent(), vo.getPath()));
+        tVo.setOwner(vo.getOwner());
+        tVo.setRepo(vo.getRepo());
+        tVo.setContent(H3SecurityUtil.AESEncryptFile(vo.getContent(), vo.getSalt()));
+        TreeDto dto = HS3Github.createTree(tVo, gitHub);
 
         Map<String,Object> content = new HashMap<>();
         List<String> parent = new ArrayList<>();
         parent.add(commitDto.getSha());
         content.put("tree", dto.getSha());
-        content.put("message", "create file:" + vo.getPath());
+        content.put("message", vo.getSalt());
         content.put("parents", parent);
         commitDto = gitHub.createCommit(vo.getOwner(), vo.getRepo(), content);
         log.info("create commit tree.sha:{}", commitDto.getTree().getSha());
@@ -70,5 +79,13 @@ public class HS3Fs {
         content.put("force", Boolean.TRUE);
         refDto = gitHub.updateRef(vo.getOwner(), vo.getRepo(), "heads/master", content);
         log.info("Update ref sha:{}", refDto.getObject().getSha());
+    }
+
+    private static String getPath(String parent, String path){
+        if(parent == null){
+            return path;
+        }else{
+            return String.format("%s/%s", parent, path);
+        }
     }
 }

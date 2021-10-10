@@ -1,24 +1,28 @@
 package com.czx.h3common.git;
 
+import com.czx.h3common.coder.FastDecoder;
+import com.czx.h3common.coder.FastEncoder;
+import com.czx.h3common.coder.GsonEncoder;
 import com.czx.h3common.git.dto.*;
 import com.czx.h3common.git.vo.FileVo;
 import com.czx.h3common.git.vo.TreeType;
 import com.czx.h3common.git.vo.TreeVo;
-import com.czx.h3common.gson.GsonDecoder;
-import com.czx.h3common.gson.GsonEncoder;
 import feign.Feign;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class HS3Github {
     public static GitHub connect(String user, String token){
         GitHub github = Feign.builder()
-                .decoder(new GsonDecoder())
-                .encoder(new GsonEncoder())
+                .decoder(new FastDecoder())
+                .encoder(new FastEncoder())
                 .requestInterceptor(new TokenAuthRequestInterceptor(token))
                 .target(GitHub.class, "https://api.github.com");
         return github;
@@ -41,8 +45,7 @@ public class HS3Github {
         Map<String, Object> committer = new HashMap<>();
         committer.put("name","HS3");
         committer.put("email","hs3@126.com");
-        String content = Base64.getEncoder().encodeToString(fileVo.getContents());
-        FileDto dto = FileDto.builder().message("Put a file").content(content).committer(committer)
+        FileDto dto = FileDto.builder().message("Put a file").content(fileVo.getContents()).committer(committer)
                 .sha(fileVo.getSha()).build();
         FileMetaDto map = gitHub.putFile(fileVo.getOwner(), fileVo.getRepo(), fileVo.getPath(), dto);
         return map;
@@ -58,29 +61,18 @@ public class HS3Github {
 
     public static TreeDto createTree(TreeVo vo, GitHub gitHub){
         GitTreeDto dto = GitTreeDto.builder().mode(vo.getMode().getMode()).path(vo.getPath()).build();
-        switch (vo.getMode()){
-            case FILE_BLOB:
-            case EXE_BLOB:{
-                dto.setType(TreeType.BLOB.lowName());
-                if(vo.getContent() != null) {
-                    dto.setContent(Base64.getEncoder().encodeToString(vo.getContent()));
-                }else{
-                    dto.setSha(vo.getSha());
-                }
-                break;
-            }
-            case SUB_DIR:{
-                dto.setSha(vo.getSha());
-                dto.setType(TreeType.TREE.lowName());
-            }
-            case SUB_MODULE:{
-                dto.setType(TreeType.COMMIT.lowName());
-            }
-            case SYMLINK:{
-                dto.setType(TreeType.BLOB.lowName());
-            }
-        }
+        dto.setType(TreeType.BLOB.lowName());
+        dto.setContent(vo.getContent());
+        List<GitTreeDto> treeDtoList = new ArrayList<>();
+        treeDtoList.add(dto);
+        CreateTreeDto treeDto = CreateTreeDto.builder().base_tree(vo.getBase_sha()).tree(treeDtoList).build();
+        return gitHub.createTree(vo.getOwner(), vo.getRepo(), treeDto);
+    }
 
+    public static TreeDto createDir(TreeVo vo, GitHub gitHub){
+        GitTreeDto dto = GitTreeDto.builder().mode(vo.getMode().getMode()).path(vo.getPath()).build();
+        dto.setSha(vo.getContent());
+        dto.setType(TreeType.TREE.lowName());
         List<GitTreeDto> treeDtoList = new ArrayList<>();
         treeDtoList.add(dto);
         CreateTreeDto treeDto = CreateTreeDto.builder().base_tree(vo.getBase_sha()).tree(treeDtoList).build();

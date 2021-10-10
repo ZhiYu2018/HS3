@@ -1,4 +1,4 @@
-package com.czx.h3common.gson;
+package com.czx.h3common.coder;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;

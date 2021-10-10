@@ -42,8 +42,7 @@ public class GitTests {
         }
 
         System.out.println(">>>" + gitHub.rateLimit());
-        FileVo vo = FileVo.builder().path("hello4.txt").owner(owner).contents("Hello world".getBytes())
-                .repo(repo).build();
+        FileVo vo = FileVo.builder().path("hello4.txt").owner(owner).contents("Hello world").repo(repo).build();
         vo.setSha("70c379b63ffa0795fdbfbc128e5a2818397b7ef8");
         FileMetaDto map = HS3Github.putFile(vo, gitHub);
         System.out.println("Sha:" + vo.getSha());
@@ -58,9 +57,8 @@ public class GitTests {
     @Test
     public void testGitTree(){
         String content = "Hello czx, this is a file";
-        TreeVo vo = TreeVo.builder().mode(TreeMode.FILE_BLOB).content(Base64.getEncoder()
-                .encode(content.getBytes(StandardCharsets.UTF_8))).owner(owner).path("picture/cyr.txt").repo(repo).build();
-        HS3Fs.createFile(vo, gitHub);
+        //TreeVo vo = TreeVo.builder().mode(TreeMode.FILE_BLOB).content(content).owner(owner).path("picture/cyr.txt").repo(repo).build();
+        //HS3Fs.createFile(vo, gitHub);
     }
 
     @Test
@@ -94,6 +92,9 @@ public class GitTests {
         String content = blobDto.getContent().trim();
         System.out.println("[" + content + ']');
         System.out.println(new String(Base64.getDecoder().decode(content), StandardCharsets.UTF_8));
+
+        String ct = "VTBkV2MySkhPR2RaTTNBMFRFTkNNR0ZIYkhwSlIyeDZTVWRGWjFwdGJITmFVVDA5";
+        System.out.println(new String(Base64.getDecoder().decode(ct), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -116,11 +117,8 @@ public class GitTests {
     @Test
     public void testGetTree(){
         RefDto refDto = gitHub.getRef(owner, repo, "heads/master");
-        CommitDto commitDto = gitHub.getCommit(owner, repo, refDto.getObject().getSha());
-        System.out.println(gson.toJson(commitDto));
         Map<String,Object> q = new HashMap<>();
-        q.put("recursive", "true");
-        TreeDto treeDto = gitHub.getGitTree(owner, repo, refDto.getObject().getSha(), q);
+        TreeDto treeDto = gitHub.getGitTree(owner, repo, "48454dceab6dfa6be1d19bc95a951e7137a56f2a", q);
         for(TreeInfo ti: treeDto.getTree()) {
             System.out.println(">>" + gson.toJson(ti));
         }

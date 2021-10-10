@@ -4,6 +4,12 @@ import com.czx.h3common.security.*;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class TinkTests{
 
     @Test
@@ -55,6 +61,26 @@ public class TinkTests{
         System.out.println("hmac:" + H3SecurityUtil.hMac(data, "czx"));
         System.out.println("Salt:" + H3SecurityUtil.getSalt());
 
+        tags = tinkAES.encryptII(data.getBytes(), "czx");
+        System.out.println("encryptII tags:" + tags);
+        byte [] rawB = tinkAES.decryptII(tags, "czx");
+        newData = new String(rawB);
+        System.out.println("AESDecrypt raw:" + newData);
+        Assert.assertEquals(data, newData);
+    }
 
+
+    @Test
+    public void testStream(){
+        Map<String, String> map = new HashMap<>();
+        map.put("A", "a");
+        map.put("B", "b");
+        map.put("C", "c");
+        map.put("D", "d");
+        Stream<String> stream = map.entrySet().stream().map((t) -> t.getKey() + t.getValue());
+        List<String> list = stream.collect(Collectors.toList());
+        for(String s:list){
+            System.out.println("S:" + s);
+        }
     }
 }

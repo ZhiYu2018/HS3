@@ -5,10 +5,11 @@ import lombok.Data;
 
 @Data
 @Builder
-public class FileVo {
-    private String owner;
-    private String contents;
+public class FileContentVo {
+    private String parent;
     private String path;
+    private String owner;
     private String repo;
-    private String sha;
+    private String salt;
+    private byte []content;
 }

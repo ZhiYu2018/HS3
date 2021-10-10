@@ -1,5 +1,6 @@
 package com.czx.h3common.git.dto;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,7 @@ public class RepoDto {
     private String license_template;
 
     @SerializedName("private")
+    @JSONField(name="private")
     private Boolean isPrivate;
     private Boolean has_wiki;
     private Boolean auto_init;
