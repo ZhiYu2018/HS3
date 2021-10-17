@@ -55,7 +55,7 @@ public class TinkTests{
         tags = H3SecurityUtil.AESEncrypt(data, "czx");
         System.out.println("AESEncrypt tags:" + tags);
         newData = H3SecurityUtil.AESDecrypt(tags, "czx");
-        System.out.println("AESDecrypt raw:" + newData);
+        System.out.println("AESDecrypt raw:[" + newData +"]");
         Assert.assertEquals(data, newData);
 
         System.out.println("hmac:" + H3SecurityUtil.hMac(data, "czx"));

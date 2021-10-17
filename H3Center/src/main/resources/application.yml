@@ -44,3 +44,8 @@ server:
     threads:
       acceptors: 2
       max-queue-capacity: 100
+
+hs3storage:
+  owner: "ZhiYu2018"
+  token: "AR5PFn6RvfLSLlzEUoi7K5b85ypAFYsjp4kgN8GzG38lg9MifVJJ3yg4EicRVdwLZLWGjkuocDqI6FNLKJawBJ1UbSmihbMxEQ=="
+  repo: "HomeNas"

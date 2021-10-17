@@ -4,6 +4,7 @@ import com.czx.h3common.git.GitHub;
 import com.czx.h3common.git.HS3Fs;
 import com.czx.h3common.git.dto.TreeDto;
 import com.czx.h3common.git.vo.FileContentVo;
+import com.czx.h3common.git.vo.GetBlobVo;
 import com.czx.h3common.git.vo.TreeInfo;
 import com.czx.h3common.util.Helper;
 import com.czx.h3outbound.ofs.HS3File;
@@ -17,6 +18,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,24 +69,24 @@ public class GitHubFile implements HS3File {
             throw HS3OfsExceptions.of("File is new");
         }
 
-        int totalLen = 0;
-        while((totalLen < len) && buffer.hasRemaining()){
+        buffer.clear();
+        while(buffer.hasRemaining()){
             if((segBuffer == null) || !segBuffer.hasRemaining()){
-                readSegment();
-            }
-
-            if(!segBuffer.hasRemaining()){
-                break;
+                if(readSegment() == 0){
+                    break;
+                }
             }
 
             int rl = buffer.remaining();
             if(rl > segBuffer.remaining()){
                 rl = segBuffer.remaining();
             }
-            totalLen = totalLen + rl;
-            buffer.put(segBuffer);
+            buffer.put(segBuffer.array(), segBuffer.position(), rl);
+            segBuffer.position(segBuffer.position() + rl);
         }
-        return totalLen;
+        int p = buffer.position();
+        buffer.flip();
+        return p;
     }
 
     @Override
@@ -92,13 +94,20 @@ public class GitHubFile implements HS3File {
         if(!infoList.isEmpty()){
             throw HS3OfsExceptions.of("Do not support modify file");
         }
-        int totalLen = 0;
-        while ((totalLen < len) && buffer.hasRemaining()){
+
+        buffer.flip();
+        while (buffer.hasRemaining()){
             if((segBuffer == null) || !segBuffer.hasRemaining()){
                 writeSegment();
             }
+            int rl = segBuffer.remaining();
+            if(rl > buffer.remaining()){
+                rl = buffer.remaining();
+            }
+            segBuffer.put(buffer.array(), buffer.position(), rl);
+            buffer.position(buffer.position() + rl);
         }
-        return totalLen;
+        return buffer.position();
     }
 
     @Override
@@ -106,6 +115,16 @@ public class GitHubFile implements HS3File {
         if(infoList.isEmpty()){
             return;
         }
+
+        flush();
+    }
+
+    private void flush(){
+        if((segBuffer == null) || (segBuffer.position() == 0)){
+            return ;
+        }
+
+        writeSegment();
     }
 
     private void writeSegment(){
@@ -117,19 +136,55 @@ public class GitHubFile implements HS3File {
         Helper.OfsAssert((segBuffer.position() >= MAX_SIZE_MB), "Segment position is error");
         int segNum = (offset/MAX_SIZE_MB);
         String segName = String.format("%s_%d", this.path, segNum);
-        FileContentVo vo = FileContentVo.builder().content(segBuffer.array())
+        byte [] content = segBuffer.array();
+        if(segBuffer.position() < MAX_SIZE_MB){
+            content = Arrays.copyOf(segBuffer.array(), segBuffer.position());
+        }
+
+        FileContentVo vo = FileContentVo.builder().content(content)
                 .owner(usi.getOwner()).salt(spaceMeta.getSalt()).path(segName).parent(spaceMeta.getPath()).build();
         try{
             HS3Fs.createFile(vo, gitHub);
             offset += segBuffer.position();
-            segBuffer.reset();
+            segBuffer.clear();
         }catch (Exception ex){
             log.warn("Write segment={}, exceptions:{}", segName, ex.getMessage());
             throw HS3OfsExceptions.of(ex.getMessage());
         }
     }
 
-    private void readSegment(){
-        segBuffer.reset();
+    private int readSegment(){
+        if(infoList.isEmpty()){
+            return 0;
+        }
+
+        int segNum = (offset/MAX_SIZE_MB);
+        String segName = String.format("%s_%d", this.path, segNum);
+        TreeInfo info = infoList.get(segNum);
+        if(!info.getPath().endsWith(segName)){
+            log.info("File segment error: {} !={}", info.getPath(), segName);
+            throw HS3OfsExceptions.of(String.format("File segment is error:%s != %s", info.getPath(), segName));
+        }
+
+        if(segBuffer == null){
+            segBuffer = ByteBuffer.allocate(MAX_SIZE_MB);
+            Helper.OfsAssert((offset == 0), "File position is error");
+        }else {
+            segBuffer.clear();
+        }
+
+        Helper.OfsAssert((segBuffer.position() >= MAX_SIZE_MB), "Segment position is error");
+        GetBlobVo vo = GetBlobVo.builder().owner(usi.getOwner()).repo(usi.getRepo())
+                .salt(spaceMeta.getSalt()).sha(info.getSha()).build();
+        try{
+            HS3Fs.getBlob(vo, gitHub);
+            segBuffer.put(vo.getContent());
+            offset += segBuffer.position();
+            segBuffer.flip();
+            return segBuffer.remaining();
+        }catch (Exception ex){
+            log.warn("Read segment={}, exceptions:{}", segName, ex.getMessage());
+            throw HS3OfsExceptions.of(ex.getMessage());
+        }
     }
 }

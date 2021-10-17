@@ -1,10 +1,15 @@
 package com.czx.h3center.domain;
 
+import com.czx.h3center.HS3Properties;
+import com.czx.h3common.git.HS3Storage;
 import com.czx.h3common.security.HSTink;
 import com.czx.h3facade.Exceptions.ErrorHelper;
 import com.czx.h3facade.Exceptions.H3RuntimeException;
 import com.czx.h3facade.api.CenterUserI;
 import com.czx.h3facade.dto.*;
+import com.czx.h3outbound.ofs.HS3FileSystem;
+import com.czx.h3outbound.ofs.vo.StorageType;
+import com.czx.h3outbound.ofs.vo.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +17,9 @@ import org.springframework.stereotype.Service;
 @Service("domainUserService")
 @Slf4j
 public class CenterUserImpl implements CenterUserI {
+    @Autowired
+    private HS3Storage hs3Storage;
+
     @Autowired
     private AccAggregator accAggregator;
     @Autowired
@@ -53,9 +61,11 @@ public class CenterUserImpl implements CenterUserI {
         Response<String> response = new Response<>();
         response.setBizNo(request.getBizNo());
         try{
-            Account account = accAggregator.getAccount(request.getData());
-            account.setGitAccount(request.getData());
-            response.setData("ApplyHome success");
+            UserInfo usi = UserInfo.builder().owner(HS3Properties.getOwner())
+                    .repo(HS3Properties.getRepo()).token(HS3Properties.getToken())
+                    .type(StorageType.ST_GITHUB).build();
+            HS3FileSystem fileSystem = hs3Storage.getHs3FileSystem(usi);
+            fileSystem.apply(request.getData().getName());
             ErrorHelper.successResponse(response, "H3Center");
         }catch (H3RuntimeException exception){
             log.error("H3RuntimeException:{}", exception.getMessage());

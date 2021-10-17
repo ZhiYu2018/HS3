@@ -61,6 +61,14 @@ public class H3SecurityUtil {
         return _AESEncrypt(bKey, bIv, input);
     }
 
+    public static byte [] AESDecryptFile(String data, String aad)throws Exception{
+        byte [] aadBuf = Base64.getDecoder().decode(aad);
+        Helper.OfsAssert((aadBuf.length == 48), "aad len is error");
+        byte [] bKey = new byte[16];
+        byte [] bIv = new byte[32];
+        return _AESDecrypt(bKey, bIv, data);
+    }
+
     public static String AESEncrypt(String data, String aad)throws Exception{
         byte[] aadKey = getAESKey(aad);
         byte[] input = getUTF8Bytes(data);
@@ -87,8 +95,13 @@ public class H3SecurityUtil {
 
     public static String AESDecrypt(String data, String aad)throws Exception{
         byte[] aadKey = getAESKey(aad);
-        SecretKeySpec key = new SecretKeySpec(aadKey,"AES");
-        IvParameterSpec iv = new IvParameterSpec(aadKey);
+        byte [] decoded = _AESDecrypt(aadKey, aadKey, data);
+        return new String(decoded);
+    }
+
+    private static byte[] _AESDecrypt(byte [] bKey, byte [] bIv, String data)throws Exception{
+        SecretKeySpec key = new SecretKeySpec(bKey,"AES");
+        IvParameterSpec iv = new IvParameterSpec(bIv);
         Properties properties = new Properties();
         String transform = "AES/CBC/PKCS5Padding";
         properties.setProperty(CryptoCipherFactory.CLASSES_KEY, CryptoCipherFactory.CipherProvider.JCE.getClassName());
@@ -97,9 +110,9 @@ public class H3SecurityUtil {
             byte [] keyBytes = Base64.getDecoder().decode(getUTF8Bytes(data));
             byte [] decoded = new byte[keyBytes.length];
             int len = decipher.doFinal(keyBytes, 0, keyBytes.length, decoded, 0);
-            return new String(decoded, 0, len);
+            return Arrays.copyOf(decoded, len);
         }catch (Exception ex){
-            log.info("AESDecrypt data={},aad={},exceptions:{}", data, aad, ex.getMessage());
+            log.info("AESDecrypt data={},exceptions:{}", data, ex.getMessage());
             throw ex;
         }
     }

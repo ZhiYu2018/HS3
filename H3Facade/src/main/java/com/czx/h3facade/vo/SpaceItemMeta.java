@@ -1,9 +1,10 @@
 package com.czx.h3facade.vo;
 
+import lombok.Data;
+
+@Data
 public class SpaceItemMeta {
-    private String space;
+    private String path;
     private String name;
-    private String finger;
-    private String dateTime;
     private Integer size;
 }

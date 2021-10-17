@@ -1,13 +1,16 @@
 package com.czx.h3common.git;
 
+import com.czx.h3common.git.dto.BlobDto;
 import com.czx.h3common.git.dto.CommitDto;
 import com.czx.h3common.git.dto.RefDto;
 import com.czx.h3common.git.dto.TreeDto;
 import com.czx.h3common.git.vo.FileContentVo;
+import com.czx.h3common.git.vo.GetBlobVo;
 import com.czx.h3common.git.vo.TreeMode;
 import com.czx.h3common.git.vo.TreeVo;
 import com.czx.h3common.security.H3SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,6 +82,15 @@ public class HS3Fs {
         content.put("force", Boolean.TRUE);
         refDto = gitHub.updateRef(vo.getOwner(), vo.getRepo(), "heads/master", content);
         log.info("Update ref sha:{}", refDto.getObject().getSha());
+    }
+
+    public static void getBlob(GetBlobVo blobVo, GitHub gitHub) throws Exception {
+        log.info("Get blob sha={}", blobVo.getSha());
+        BlobDto blobDto = gitHub.getBlob(blobVo.getOwner(), blobVo.getRepo(), blobVo.getSha());
+        if(StringUtils.isEmpty(blobDto.getContent())){
+            throw new Exception("Content is empty");
+        }
+        blobVo.setContent(H3SecurityUtil.AESDecryptFile(blobDto.getContent(), blobVo.getSalt()));
     }
 
     private static String getPath(String parent, String path){
