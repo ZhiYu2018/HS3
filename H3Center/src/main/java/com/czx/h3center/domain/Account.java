@@ -133,6 +133,11 @@ public class Account {
         accountDao.updateAccount(accountDto);
     }
 
+    public boolean isOpenGit(){
+        AccountDto acc = accountDao.findByUid(accountDto.getUid());
+        return (acc.getGitOpenFlag() == ConstantsValue.ACCOUNT_STATUS_ENABLE);
+    }
+
     private Account(AccountDaoI accountDao, OpenIdsDaoI openIdsDao, AccountDto accountDto){
         this.accountDao = accountDao;
         this.openIdsDao = openIdsDao;
@@ -140,7 +145,7 @@ public class Account {
     }
 
     private static String createUid(){
-        char start = 'A';
+        char start = 'a';
         StringBuilder sb = new StringBuilder();
         long value = System.nanoTime();
         while (value > 0){
