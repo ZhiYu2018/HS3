@@ -6,10 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 @ConfigurationProperties()
-@Component
 @Slf4j
 public class HS3Properties {
     private HSTink hsTink;
@@ -17,9 +15,13 @@ public class HS3Properties {
     private static String owner;
     private static String repo;
     private static String token;
+    public HS3Properties(){
+        log.info("HS3Properties init");
+    }
 
     @Autowired
     public HS3Properties(HSTink hsTink){
+        log.info("HS3Properties 2 init");
         this.hsTink = hsTink;
     }
 
@@ -50,7 +52,7 @@ public class HS3Properties {
         try {
             TinkAES tinkAES = hsTink.getTinkAES();
             String raw = tinkAES.decrypt(token, "czx");
-            log.info("Token={},raw={}", token, raw);
+            log.info("Token={},raw=[{}]", token, raw);
             HS3Properties.token = raw;
         }catch (Exception ex){
             log.warn("Aes token={} error:{}", token, ex);

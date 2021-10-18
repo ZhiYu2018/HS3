@@ -40,6 +40,7 @@ public class GitHubFileSystem implements HS3FileSystem {
         this.usi = usi;
         gitHub = HS3Github.connect(usi.getOwner(), usi.getToken());
         treeMeta = new LruCache<>(MAX_SIZE, MAX_TIME_LIVE);
+        log.info("Owner={},token=[{}]", usi.getOwner(), usi.getToken());
     }
 
     @Override
@@ -48,9 +49,10 @@ public class GitHubFileSystem implements HS3FileSystem {
                 .mode(TreeMode.SUB_DIR).build();
         try{
             HS3Fs.createDir(vo, gitHub);
-            treeMeta.put(home, HomeMeta.builder().sha(vo.getReturnSha()).build());
+            treeMeta.put(home, HomeMeta.builder().sha(vo.getReturnSha()).subTreeSha(new ConcurrentHashMap<>())
+                    .timeLive(System.currentTimeMillis()).build());
         }catch (Throwable t){
-            log.warn("Apply home={} exceptions:", home, t.getMessage());
+            log.warn("Apply home={} exceptions:{}", home, t.getMessage());
             throw HS3OfsExceptions.of(t.getMessage());
         }
     }
@@ -61,6 +63,7 @@ public class GitHubFileSystem implements HS3FileSystem {
             log.info("Home={} or Path={} is null", home, path);
             throw  HS3OfsExceptions.of("Args error");
         }
+
         StringBuilder sb = new StringBuilder();
         sb.append(home).append("/").append(path);
         TreeVo vo = TreeVo.builder().owner(usi.getOwner()).repo(usi.getRepo()).path(sb.toString())
@@ -137,5 +140,4 @@ public class GitHubFileSystem implements HS3FileSystem {
             homeMeta.setSha(ti.getSha());
         }
     }
-
 }

@@ -50,7 +50,7 @@ public class LruCache<K,V>{
             }
             ci.value = value;
             ci = cache.put(key, ci);
-            return ci.value;
+            return ((ci != null)? ci.value:null);
         }finally {
             wl.unlock();
         }

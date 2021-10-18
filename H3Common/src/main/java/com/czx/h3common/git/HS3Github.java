@@ -1,8 +1,6 @@
 package com.czx.h3common.git;
 
-import com.czx.h3common.coder.FastDecoder;
-import com.czx.h3common.coder.FastEncoder;
-import com.czx.h3common.coder.GsonEncoder;
+import com.czx.h3common.coder.*;
 import com.czx.h3common.git.dto.*;
 import com.czx.h3common.git.vo.FileVo;
 import com.czx.h3common.git.vo.TreeType;
@@ -21,8 +19,8 @@ import java.util.Map;
 public class HS3Github {
     public static GitHub connect(String user, String token){
         GitHub github = Feign.builder()
-                .decoder(new FastDecoder())
-                .encoder(new FastEncoder())
+                .decoder(new GsonDecoder())
+                .encoder(new GsonEncoder())
                 .requestInterceptor(new TokenAuthRequestInterceptor(token))
                 .target(GitHub.class, "https://api.github.com");
         return github;

@@ -34,21 +34,21 @@ public class GitTests {
 
     @Test
     public void testGits(){
-        RepoQueryDto qry = RepoQueryDto.builder().type("owner").sort("created").direction("asc").build();
-        List<RepoEntityDto> list = gitHub.getAuthUserRepos(qry);
-        System.out.println("size:" + list.size());
-        for(RepoEntityDto d:list){
-            System.out.println(d.getId() + "," + d.getName());
-        }
-
-        System.out.println(">>>" + gitHub.rateLimit());
-        FileVo vo = FileVo.builder().path("hello4.txt").owner(owner).contents("Hello world").repo(repo).build();
-        vo.setSha("70c379b63ffa0795fdbfbc128e5a2818397b7ef8");
-        FileMetaDto map = HS3Github.putFile(vo, gitHub);
-        System.out.println("Sha:" + vo.getSha());
-        System.out.println(gson.toJson(map));
-        vo.setSha("70c379b63ffa0795fdbfbc128e5a2818397b7ef8");
-        HS3Github.deleteFile(vo, gitHub);
+//        RepoQueryDto qry = RepoQueryDto.builder().type("owner").sort("created").direction("asc").build();
+//        List<RepoEntityDto> list = gitHub.getAuthUserRepos(qry);
+//        System.out.println("size:" + list.size());
+//        for(RepoEntityDto d:list){
+//            System.out.println(d.getId() + "," + d.getName());
+//        }
+//
+//        System.out.println(">>>" + gitHub.rateLimit());
+//        FileVo vo = FileVo.builder().path("hello4.txt").owner(owner).contents("Hello world").repo(repo).build();
+//        vo.setSha("70c379b63ffa0795fdbfbc128e5a2818397b7ef8");
+//        FileMetaDto map = HS3Github.putFile(vo, gitHub);
+//        System.out.println("Sha:" + vo.getSha());
+//        System.out.println(gson.toJson(map));
+//        vo.setSha("70c379b63ffa0795fdbfbc128e5a2818397b7ef8");
+//        HS3Github.deleteFile(vo, gitHub);
 
         //TreeDto treeDto = gitHub.getGitTree(owner, "hs3_data", null);
         //System.out.println(gson.toJson(treeDto));
@@ -69,20 +69,20 @@ public class GitTests {
 
     @Test
     public void testCreateCommit(){
-        Map<String,Object> content = new HashMap<>();
-        content.put("tree", "d3af643ff3460c519ce6ff1a491f010e8b04df9e");
-        content.put("message", "commit a tree");
-        CommitDto commitDto = gitHub.createCommit(owner, repo, content);
-        System.out.println(gson.toJson(commitDto));
+//        Map<String,Object> content = new HashMap<>();
+//        content.put("tree", "d3af643ff3460c519ce6ff1a491f010e8b04df9e");
+//        content.put("message", "commit a tree");
+//        CommitDto commitDto = gitHub.createCommit(owner, repo, content);
+//        System.out.println(gson.toJson(commitDto));
     }
 
     @Test
     public void testBlob(){
-        String content = "Hello, this is blob";
-        BlobDto blobDto = BlobDto.builder().content(Base64.getEncoder()
-                .encodeToString(content.getBytes(StandardCharsets.UTF_8))).encoding("base64").build();
-        BlobDto map = gitHub.createBlob(owner,repo,blobDto);
-        System.out.println(gson.toJson(map));
+//        String content = "Hello, this is blob";
+//        BlobDto blobDto = BlobDto.builder().content(Base64.getEncoder()
+//                .encodeToString(content.getBytes(StandardCharsets.UTF_8))).encoding("base64").build();
+//        BlobDto map = gitHub.createBlob(owner,repo,blobDto);
+//        System.out.println(gson.toJson(map));
     }
 
     @Test
@@ -100,25 +100,26 @@ public class GitTests {
     @Test
     public void testGetRef(){
         RefDto refDto = gitHub.getRef(owner, repo, "heads/master");
-        System.out.println(gson.toJson(refDto));
+        System.out.println("Ref:" + refDto.getObject().getSha());
         CommitDto commitDto = gitHub.getCommit(owner, repo, refDto.getObject().getSha());
         System.out.println(gson.toJson(commitDto));
     }
 
     @Test
     public void testUpdateRef(){
-        Map<String,Object> content = new HashMap<>();
-        content.put("sha", "0c1be45a07d43c259a0b23294dcc892c79ce90ab");
-        content.put("force", Boolean.TRUE);
-        RefDto refDto = gitHub.updateRef(owner, repo, "heads/master", content);
-        System.out.println(gson.toJson(refDto));
+//        Map<String,Object> content = new HashMap<>();
+//        content.put("sha", "0c1be45a07d43c259a0b23294dcc892c79ce90ab");
+//        content.put("force", Boolean.TRUE);
+//        RefDto refDto = gitHub.updateRef(owner, repo, "heads/master", content);
+//        System.out.println(gson.toJson(refDto));
     }
 
     @Test
     public void testGetTree(){
         RefDto refDto = gitHub.getRef(owner, repo, "heads/master");
+        System.out.println("Ref:" + refDto.getObject().getSha());
         Map<String,Object> q = new HashMap<>();
-        TreeDto treeDto = gitHub.getGitTree(owner, repo, "48454dceab6dfa6be1d19bc95a951e7137a56f2a", q);
+        TreeDto treeDto = gitHub.getGitTree(owner, repo, refDto.getObject().getSha(), q);
         for(TreeInfo ti: treeDto.getTree()) {
             System.out.println(">>" + gson.toJson(ti));
         }
