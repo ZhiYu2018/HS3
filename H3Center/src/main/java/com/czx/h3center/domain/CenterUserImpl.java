@@ -73,6 +73,9 @@ public class CenterUserImpl implements CenterUserI {
                 request.getData().setGitPwd(HS3Properties.getToken());
                 request.getData().setGitFlag(ConstantsValue.ACCOUNT_STATUS_ENABLE);
                 account.setGitAccount(request.getData());
+                response.setData("Apply home success");
+            }else{
+                response.setData("ReApply home");
             }
             ErrorHelper.successResponse(response, "H3Center");
         }catch (H3RuntimeException exception){

@@ -75,8 +75,10 @@ public class GitHubFileSystem implements HS3FileSystem {
                 homeMeta = HomeMeta.builder().sha(vo.getReturnSha()).subTreeSha(new ConcurrentHashMap<>()).build();
                 treeMeta.put(home, homeMeta);
             }
+            log.info("Put path={},sha={}", vo.getPath(), vo.getReturnSha());
             homeMeta.getSubTreeSha().put(vo.getPath(), vo.getReturnSha());
         }catch (Throwable t){
+            t.printStackTrace();
             log.warn("Apply home={} exceptions:", home, t.getMessage());
             throw HS3OfsExceptions.of(t.getMessage());
         }
@@ -89,6 +91,18 @@ public class GitHubFileSystem implements HS3FileSystem {
             loadHome();
         }
 
+        homeMeta = treeMeta.get(home);
+        if(homeMeta == null){
+            log.info("Home={} is not exist", home);
+            return new ArrayList<>();
+        }
+
+        checkLoadUserHome(home, homeMeta);
+        if(homeMeta.getSubTreeSha() == null){
+            log.info("Home={} is empty", home);
+            return new ArrayList<>();
+        }
+        
         if(StringUtils.isEmpty(path)) {
             Stream<FileMeta> stream = homeMeta.getSubTreeSha().entrySet().stream()
                     .map((t) -> FileMeta.builder().uid(home).path(t.getKey()).sha(t.getValue()).build());
@@ -97,14 +111,16 @@ public class GitHubFileSystem implements HS3FileSystem {
 
         String sha = homeMeta.getSubTreeSha().get(path);
         if(StringUtils.isEmpty(sha)){
-            log.info("Path={} is not exist, for find none sha");
+            log.info("Path={} is not exist, for find none sha", path);
             return new ArrayList<>();
         }
 
         try{
             TreeDto treeDto = gitHub.getGitTree(usi.getOwner(), usi.getRepo(), sha, new HashMap<>());
             Stream<FileMeta> stream = treeDto.getTree().stream()
-                                      .filter(r-> (r.getPath().equals("meta.data") && r.getType().equals("blob")))
+                                      .filter(r-> {
+                                          log.info("Path={}, type={}", r.getPath().equals("meta.data"), r.getType().equals("blob"));
+                                          return (!r.getPath().equals("meta.data") && r.getType().equals("blob"));})
                                       .map((t) -> FileMeta.builder().uid(home).path(t.getPath()).sha(t.getSha()).build());
             return stream.collect(Collectors.toList());
         }catch (Exception ex){
@@ -130,14 +146,42 @@ public class GitHubFileSystem implements HS3FileSystem {
                 log.info("Path={},Mode={} is not dir", ti.getPath(), ti.getMode());
                 continue;
             }
-            log.info("Path+{}, Sha={}", ti.getPath(), ti.getSha());
+            log.info("Path={}, Sha={}", ti.getPath(), ti.getSha());
             HomeMeta homeMeta = treeMeta.get(ti.getPath());
             if(homeMeta == null){
-                homeMeta = HomeMeta.builder().sha(ti.getSha()).subTreeSha(new ConcurrentHashMap<>()).build();
+                homeMeta = HomeMeta.builder().sha(ti.getSha()).subTreeSha(null).build();
                 treeMeta.put(ti.getPath(), homeMeta);
                 continue;
             }
             homeMeta.setSha(ti.getSha());
         }
     }
+
+    private void checkLoadUserHome(String home, HomeMeta homeMeta){
+        if(homeMeta.getSubTreeSha() != null){
+            log.info("Home={}, does not need to load");
+            return ;
+        }
+
+        ConcurrentHashMap<String, String> hashMap = new ConcurrentHashMap<>();
+        Map<String,Object> q = new HashMap<>();
+        TreeDto treeDto = gitHub.getGitTree(usi.getOwner(), usi.getRepo(), homeMeta.getSha(), q);
+        for(TreeInfo ti: treeDto.getTree()){
+            if(!ti.getMode().equals(TreeMode.SUB_DIR.getMode())){
+                log.info("Path={},Mode={} is not dir", ti.getPath(), ti.getMode());
+                continue;
+            }
+            log.info("Path={}, Sha={}", ti.getPath(), ti.getSha());
+            if(ti.getPath().startsWith(home)){
+                hashMap.put(ti.getPath().substring(home.length() + 1), ti.getSha());
+            }else{
+                log.warn("Path={}, is not start with={}", ti.getPath(), home);
+                hashMap.put(ti.getPath(), ti.getSha());
+            }
+        }
+        if(!hashMap.isEmpty()){
+            homeMeta.setSubTreeSha(hashMap);
+        }
+    }
+
 }

@@ -2,7 +2,9 @@ package com.czx.h3center.domain;
 
 import com.czx.h3center.HS3Properties;
 import com.czx.h3common.git.HS3Storage;
+import com.czx.h3dao.repository.TransactionGuard;
 import com.czx.h3facade.Exceptions.ErrorHelper;
+import com.czx.h3facade.Exceptions.ErrorMsg;
 import com.czx.h3facade.api.HomeSpaceI;
 import com.czx.h3facade.dto.Request;
 import com.czx.h3facade.dto.Response;
@@ -16,6 +18,7 @@ import com.czx.h3outbound.ofs.vo.UserInfo;
 import com.czx.h3outbound.repository.HomeNasDaoI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,15 +36,26 @@ public class HomeSpaceImpl implements HomeSpaceI {
     public Response<String> createSpace(Request<SpaceDto> request) {
         Response<String> response = new Response<>();
         response.setBizNo(request.getBizNo());
-        response.setData("createSpace success");
-        HomeNas homeNas = HomeNas.getHomeNas(request.getData().getName(), homeNasDao);
-        homeNas.addSpace(request.getData().getSpace());
-        UserInfo usi = UserInfo.builder().owner(HS3Properties.getOwner())
-                .repo(HS3Properties.getRepo()).token(HS3Properties.getToken())
-                .type(StorageType.ST_GITHUB).build();
-        HS3FileSystem fileSystem = hs3Storage.getHs3FileSystem(usi);
-        fileSystem.createDir(request.getData().getName(), request.getData().getSpace());
-        ErrorHelper.successResponse(response, "H3Center");
+        response.setData("createSpace result");
+
+        boolean r = TransactionGuard.doTransaction(()->{
+            HomeNas homeNas = HomeNas.getHomeNas(request.getData().getName(), homeNasDao);
+            homeNas.addSpace(request.getData().getSpace());
+            UserInfo usi = UserInfo.builder().owner(HS3Properties.getOwner())
+                    .repo(HS3Properties.getRepo()).token(HS3Properties.getToken())
+                    .type(StorageType.ST_GITHUB).build();
+            HS3FileSystem fileSystem = hs3Storage.getHs3FileSystem(usi);
+            fileSystem.createDir(request.getData().getName(), request.getData().getSpace());
+        });
+        if(r) {
+            ErrorHelper.successResponse(response, "H3Center");
+        }else {
+            ErrorMsg msg = ErrorMsg.builder().sysServer("H3Center")
+                    .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .msg(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                    .subCode("Create.Space.Failed").subMsg("createSpace failed").build();
+            ErrorHelper.setResponse(response, msg);
+        }
         return response;
     }
 
@@ -64,7 +78,6 @@ public class HomeSpaceImpl implements HomeSpaceI {
                 .type(StorageType.ST_GITHUB).build();
         HS3FileSystem fileSystem = hs3Storage.getHs3FileSystem(usi);
         List<FileMeta> fileMetaList = fileSystem.list(request.getData().getName(), request.getData().getSpace());
-
         List<SpaceItemMeta> spaceItemMetaList = fileMetaList.stream().map(m->{
             SpaceItemMeta meta = new SpaceItemMeta();
             int last = m.getPath().lastIndexOf("/");

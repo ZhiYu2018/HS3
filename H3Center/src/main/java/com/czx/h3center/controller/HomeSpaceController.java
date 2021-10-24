@@ -71,7 +71,7 @@ public class HomeSpaceController implements HomeSpaceI {
             return response;
         }
 
-        log.info("listSpace: uid={}", request.getData().getName());
+        log.info("listSpace: uid={},path={}", request.getData().getName(), request.getData().getSpace());
         return homeSpaceImpl.listSpace(request);
     }
 }

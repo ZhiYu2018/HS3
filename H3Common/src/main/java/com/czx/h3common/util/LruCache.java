@@ -33,7 +33,8 @@ public class LruCache<K,V>{
         Lock rl = lock.readLock();
         try{
             rl.lock();
-            return cache.get(key).value;
+            CacheItem<V> ci = cache.get(key);
+            return ((ci != null)? ci.value:null);
         }finally {
             rl.unlock();
         }
