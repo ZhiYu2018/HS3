@@ -119,7 +119,7 @@ public class GitHubFileSystem implements HS3FileSystem {
             TreeDto treeDto = gitHub.getGitTree(usi.getOwner(), usi.getRepo(), sha, new HashMap<>());
             Stream<FileMeta> stream = treeDto.getTree().stream()
                                       .filter(r-> {
-                                          log.info("Path={}, type={}", r.getPath().equals("meta.data"), r.getType().equals("blob"));
+                                          log.info("Path={}, type={}", r.getPath(), r.getType());
                                           return (!r.getPath().equals("meta.data") && r.getType().equals("blob"));})
                                       .map((t) -> FileMeta.builder().uid(home).path(t.getPath()).sha(t.getSha()).build());
             return stream.collect(Collectors.toList());

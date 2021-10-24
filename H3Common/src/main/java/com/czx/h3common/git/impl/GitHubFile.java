@@ -45,7 +45,8 @@ public class GitHubFile implements HS3File {
         offset = 0;
         try{
             TreeDto treeDto = gitHub.getGitTree(usi.getOwner(), usi.getRepo(), spaceMeta.getSha(), new HashMap<>());
-            Stream<TreeInfo> stream = treeDto.getTree().stream().filter(r->r.getPath().startsWith(path));
+            Stream<TreeInfo> stream = treeDto.getTree().stream().filter(r->r.getPath().startsWith(path))
+                    .sorted((f, s) ->(f.getPath().compareTo(s.getPath())>= 0? 1:-1));
             infoList = stream.collect(Collectors.toList());
         }catch (Exception ex){
             log.warn("Open dir={},path={} exceptions:{}", dir, path, ex.getMessage());
@@ -134,8 +135,7 @@ public class GitHubFile implements HS3File {
         }
 
         Helper.OfsAssert((segBuffer.position() >= MAX_SIZE_MB), "Segment position is error");
-        int segNum = (offset/MAX_SIZE_MB);
-        String segName = String.format("%s_%d", this.path, segNum);
+        String segName = String.format("%s_%d", this.path, offset);
         byte [] content = segBuffer.array();
         if(segBuffer.position() < MAX_SIZE_MB){
             content = Arrays.copyOf(segBuffer.array(), segBuffer.position());
@@ -145,7 +145,7 @@ public class GitHubFile implements HS3File {
                 .owner(usi.getOwner()).salt(spaceMeta.getSalt()).path(segName).parent(spaceMeta.getPath()).build();
         try{
             HS3Fs.createFile(vo, gitHub);
-            offset += segBuffer.position();
+            offset += 1;
             segBuffer.clear();
         }catch (Exception ex){
             log.warn("Write segment={}, exceptions:{}", segName, ex.getMessage());
@@ -158,9 +158,8 @@ public class GitHubFile implements HS3File {
             return 0;
         }
 
-        int segNum = (offset/MAX_SIZE_MB);
-        String segName = String.format("%s_%d", this.path, segNum);
-        TreeInfo info = infoList.get(segNum);
+        String segName = String.format("%s_%d", this.path, offset);
+        TreeInfo info = infoList.get(offset);
         if(!info.getPath().endsWith(segName)){
             log.info("File segment error: {} !={}", info.getPath(), segName);
             throw HS3OfsExceptions.of(String.format("File segment is error:%s != %s", info.getPath(), segName));
@@ -179,7 +178,7 @@ public class GitHubFile implements HS3File {
         try{
             HS3Fs.getBlob(vo, gitHub);
             segBuffer.put(vo.getContent());
-            offset += segBuffer.position();
+            offset += 1;
             segBuffer.flip();
             return segBuffer.remaining();
         }catch (Exception ex){
