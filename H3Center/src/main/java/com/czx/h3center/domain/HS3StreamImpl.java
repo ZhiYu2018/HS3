@@ -34,7 +34,7 @@ public class HS3StreamImpl {
     private ScheduledExecutorService service;
 
     public HS3StreamImpl(){
-        timeKickCache = new TimeKickCache<>(MAX_TIME, HS3StreamImpl::kickOf);
+        timeKickCache = new TimeKickCache<>(MAX_TIME, TimeUnit.SECONDS, HS3StreamImpl::kickOf);
         eventBus = new EventBus<>("HS3Up", this::uploadFile);
         try{
             FileUtils.forceMkdir(CACHE_DIR);
@@ -97,11 +97,11 @@ public class HS3StreamImpl {
     private static void kickOf(HS3SI hs3SI) {
         if (hs3SI != null) {
             IOUtils.closeQuietly(hs3SI.fos);
-            File old = new File(hs3SI.key + ".upq");
+            File old = new File(hs3SI.key + ".tmp");
             if (hs3SI.status != 0) {
                 FileUtils.deleteQuietly(old);
             } else {
-                old.renameTo(new File(hs3SI.key));
+                old.renameTo(new File(hs3SI.key + ".upq"));
             }
         }
     }

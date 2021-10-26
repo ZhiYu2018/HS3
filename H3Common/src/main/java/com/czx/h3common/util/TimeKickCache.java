@@ -27,7 +27,10 @@ public class TimeKickCache <T>{
     private Consumer<T> consumer;
     private ScheduledExecutorService service;
 
-    public TimeKickCache(int maxTime, Consumer<T> consumer){
+    public TimeKickCache(int maxTime, TimeUnit timeUnit, Consumer<T> consumer){
+        if(timeUnit != TimeUnit.SECONDS){
+            throw new RuntimeException("timeUnit is not TimeUnit.SECONDS");
+        }
         cacheMap = new ConcurrentHashMap<>();
         linkedList = new LinkedList<>();
         kickLinkedList = new LinkedList<>();
@@ -77,7 +80,7 @@ public class TimeKickCache <T>{
     public void remove(String key){
         CI ci = cacheMap.remove(key);
         if(ci != null){
-            ci.time = ci.time - maxTime;
+            ci.time = ci.time - maxTime * 1000;
         }
     }
 
