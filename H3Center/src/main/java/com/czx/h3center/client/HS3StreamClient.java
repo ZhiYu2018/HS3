@@ -10,6 +10,7 @@ import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 @Slf4j
@@ -51,12 +52,25 @@ public class HS3StreamClient {
         }
     }
 
-    public void sendMessage(String msg){
+    public void sendMessage(ByteBuffer buffer, boolean isLast){
         if(!session.isOpen()){
             log.warn("Send msg failed:isOpen = {}", session.isOpen());
             return;
         }
-        TextMessage bMsg = new TextMessage(msg);
+        BinaryMessage bMsg = new BinaryMessage(buffer, isLast);
+        try{
+            session.sendMessage(bMsg);
+        }catch (Exception ex){
+            log.info("Send Msg exceptions:{}", ex.getMessage());
+        }
+    }
+
+    public void sendMessage(String msg, boolean isLast){
+        if(!session.isOpen()){
+            log.warn("Send msg failed:isOpen = {}", session.isOpen());
+            return;
+        }
+        TextMessage bMsg = new TextMessage(msg, isLast);
         try{
             session.sendMessage(bMsg);
         }catch (Exception ex){

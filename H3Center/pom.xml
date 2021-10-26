@@ -43,6 +43,11 @@
             <artifactId>spring-integration-websocket</artifactId>
         </dependency>
         <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.czx</groupId>
             <artifactId>H3Facade</artifactId>
         </dependency>
