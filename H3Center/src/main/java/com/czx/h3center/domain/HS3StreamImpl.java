@@ -97,11 +97,11 @@ public class HS3StreamImpl {
     private static void kickOf(HS3SI hs3SI) {
         if (hs3SI != null) {
             IOUtils.closeQuietly(hs3SI.fos);
-            File old = new File(hs3SI.key + ".tmp");
+            File old = new File(CACHE_DIR, hs3SI.key + ".tmp");
             if (hs3SI.status != 0) {
                 FileUtils.deleteQuietly(old);
             } else {
-                old.renameTo(new File(hs3SI.key + ".upq"));
+                old.renameTo(new File(CACHE_DIR,hs3SI.key + ".upq"));
             }
         }
     }
