@@ -66,7 +66,7 @@ public class HS3WsController {
 
                 String json = JSON.toJSONString(hsObject);
                 streamClient.sendMessage(json, hsObject.getIsLast());
-                num ++;
+                num++;
                 if(hsObject.getIsLast()){
                     break;
                 }

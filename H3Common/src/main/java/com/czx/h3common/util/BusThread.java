@@ -13,6 +13,7 @@ class BusThread<T> implements Runnable{
     private LinkedBlockingDeque<T> dataList;
     private Thread thread;
     public BusThread(String name, Consumer<T> consumer){
+        this.isExist = false;
         this.consumer = consumer;
         dataList = new LinkedBlockingDeque<>();
         thread = new Thread(this, name);
@@ -25,7 +26,7 @@ class BusThread<T> implements Runnable{
 
     @Override
     public void run() {
-        while (isExist){
+        while (!isExist){
            T data = poll();
            if(data == null){
                continue;

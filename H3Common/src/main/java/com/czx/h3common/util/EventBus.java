@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 public class EventBus <T>{
     private Consumer<T> consumer;
     private List<BusThread<T>> list;
+
     public EventBus(String name, Consumer<T> consumer){
         this.consumer = consumer;
         list = new ArrayList<>();
@@ -19,11 +20,11 @@ public class EventBus <T>{
             BusThread busItem = new BusThread(threadName, consumer);
             list.add(busItem);
         }
-
     }
 
     public void post(String key, T t) throws Exception {
         int n = Math.abs(key.hashCode()) % list.size();
+        log.info("Key={},Hash={}", key, n);
         BusThread busThread = list.get(n);
         busThread.put(t);
     }

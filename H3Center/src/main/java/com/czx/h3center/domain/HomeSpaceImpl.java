@@ -77,7 +77,7 @@ public class HomeSpaceImpl implements HomeSpaceI {
                 .repo(HS3Properties.getRepo()).token(HS3Properties.getToken())
                 .type(StorageType.ST_GITHUB).build();
         HS3FileSystem fileSystem = hs3Storage.getHs3FileSystem(usi);
-        List<FileMeta> fileMetaList = fileSystem.list(request.getData().getName(), request.getData().getSpace());
+        List<FileMeta> fileMetaList = fileSystem.listSpace(request.getData().getName(), request.getData().getSpace());
         List<SpaceItemMeta> spaceItemMetaList = fileMetaList.stream().map(m->{
             SpaceItemMeta meta = new SpaceItemMeta();
             int last = m.getPath().lastIndexOf("/");

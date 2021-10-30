@@ -53,19 +53,30 @@ public class H3SecurityUtil {
 
     public static String AESEncryptFile(byte []input, String aad)throws Exception{
         byte [] aadBuf = Base64.getDecoder().decode(aad);
-        Helper.OfsAssert((aadBuf.length == 48), "aad len is error");
+        Helper.OfsAssert((aadBuf.length >= 32), "aad len is error");
+
         byte [] bKey = new byte[16];
-        byte [] bIv = new byte[32];
+        byte [] bIv = new byte[16];
         copyTo(aadBuf, bKey, 0, 0, bKey.length);
         copyTo(aadBuf, bIv, 0 + bKey.length, 0, bIv.length);
-        return _AESEncrypt(bKey, bIv, input);
+
+        try{
+            return _AESEncrypt(bKey, bIv, input);
+        }catch (Exception ex){
+            log.info("aad is ={}", aad);
+            throw ex;
+        }
     }
 
     public static byte [] AESDecryptFile(String data, String aad)throws Exception{
         byte [] aadBuf = Base64.getDecoder().decode(aad);
-        Helper.OfsAssert((aadBuf.length == 48), "aad len is error");
+        Helper.OfsAssert((aadBuf.length >= 32), "aad len is error");
+
         byte [] bKey = new byte[16];
-        byte [] bIv = new byte[32];
+        byte [] bIv = new byte[16];
+        copyTo(aadBuf, bKey, 0, 0, bKey.length);
+        copyTo(aadBuf, bIv, 0 + bKey.length, 0, bIv.length);
+
         return _AESDecrypt(bKey, bIv, data);
     }
 
@@ -145,7 +156,7 @@ public class H3SecurityUtil {
 
     public static String getSalt(){
         SaltVo saltVo = getSaltVo();
-        byte[] salt = new byte[48];
+        byte[] salt = new byte[32];
         copyTo(saltVo.getKey(), salt, 0, 0, saltVo.getKey().length);
         copyTo(saltVo.getIv(), salt, 0, saltVo.getKey().length, saltVo.getIv().length);
         return Base64.getEncoder().encodeToString(salt);

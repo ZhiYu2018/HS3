@@ -66,8 +66,8 @@ public interface GitHub {
     @RequestLine("POST /repos/{owner}/{repo}/git/blobs")
     @Headers("Accept: application/vnd.github.v3+json")
     BlobDto createBlob(@Param("owner") String owner,
-                                   @Param("repo") String repo,
-                                   BlobDto blob);
+                       @Param("repo") String repo,
+                       BlobDto blob);
 
     @RequestLine("GET /repos/{owner}/{repo}/git/blobs/{file_sha}")
     @Headers("Accept: application/vnd.github.v3+json")

@@ -85,28 +85,32 @@ public class GitHubFileSystem implements HS3FileSystem {
     }
 
     @Override
-    public List<FileMeta> list(String home, String path) {
-        HomeMeta homeMeta = treeMeta.get(home);
-        if(homeMeta == null){
-            loadHome();
+    public List<FileMeta> listHome(String home) {
+        if(StringUtils.isEmpty(home)){
+            throw HS3OfsExceptions.of("Home or path is empty");
         }
 
-        homeMeta = treeMeta.get(home);
-        if(homeMeta == null){
-            log.info("Home={} is not exist", home);
-            return new ArrayList<>();
-        }
-
-        checkLoadUserHome(home, homeMeta);
+        HomeMeta homeMeta = listUserHome(home);
         if(homeMeta.getSubTreeSha() == null){
             log.info("Home={} is empty", home);
             return new ArrayList<>();
         }
-        
-        if(StringUtils.isEmpty(path)) {
-            Stream<FileMeta> stream = homeMeta.getSubTreeSha().entrySet().stream()
-                    .map((t) -> FileMeta.builder().uid(home).path(t.getKey()).sha(t.getValue()).build());
-            return stream.collect(Collectors.toList());
+
+        Stream<FileMeta> stream = homeMeta.getSubTreeSha().entrySet().stream()
+                .map((t) -> FileMeta.builder().uid(home).path(t.getKey()).sha(t.getValue()).build());
+        return stream.collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FileMeta> listSpace(String home, String path) {
+        if(StringUtils.isEmpty(home) || StringUtils.isEmpty(path)){
+            throw HS3OfsExceptions.of("Home or path is empty");
+        }
+
+        HomeMeta homeMeta = listUserHome(home);
+        if(homeMeta.getSubTreeSha() == null){
+            log.info("Home={} is empty", home);
+            return new ArrayList<>();
         }
 
         String sha = homeMeta.getSubTreeSha().get(path);
@@ -132,7 +136,34 @@ public class GitHubFileSystem implements HS3FileSystem {
 
     @Override
     public HS3File open(FileMeta fileMeta) {
-        return null;
+        GitHubFile hs3File = new GitHubFile();
+        hs3File.setGitHub(gitHub);
+        hs3File.setSpaceMeta(fileMeta);
+        hs3File.setUsi(usi);
+
+        return hs3File;
+    }
+
+    @Override
+    public void clear() {
+        treeMeta.clear();
+    }
+
+
+    private HomeMeta listUserHome(String home){
+        HomeMeta homeMeta = treeMeta.get(home);
+        if(homeMeta == null){
+            loadHome();
+        }
+
+        homeMeta = treeMeta.get(home);
+        if(homeMeta == null){
+            log.info("Home={} is not exist", home);
+            return null;
+        }
+
+        checkLoadUserHome(home, homeMeta);
+        return homeMeta;
     }
 
     private void loadHome(){
@@ -159,7 +190,7 @@ public class GitHubFileSystem implements HS3FileSystem {
 
     private void checkLoadUserHome(String home, HomeMeta homeMeta){
         if(homeMeta.getSubTreeSha() != null){
-            log.info("Home={}, does not need to load");
+            log.info("Home={}, does not need to load", home);
             return ;
         }
 

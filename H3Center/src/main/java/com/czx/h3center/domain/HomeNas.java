@@ -34,6 +34,11 @@ public class HomeNas {
         return list;
     }
 
+    public List<HomeNasDto> getSpaceMeta(){
+        List<HomeNasDto> homeNasDtoList = homeNasDao.findByUid(uid);
+        return homeNasDtoList;
+    }
+
     public void addSpace(String space){
         List<HomeNasDto> homeNasDtoList = homeNasDao.findByUid(uid);
         if(homeNasDtoList != null){

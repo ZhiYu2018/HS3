@@ -28,7 +28,7 @@ public class GitTests {
         properties = new Properties();
         properties.load(new FileInputStream(file));
         owner = properties.getProperty("login");
-        repo  = "hs3_data";
+        repo  = "HomeNas";
         gitHub = HS3Github.connect(owner, properties.getProperty("oauth"));
     }
 
@@ -123,5 +123,11 @@ public class GitTests {
         for(TreeInfo ti: treeDto.getTree()) {
             System.out.println(">>" + gson.toJson(ti));
         }
+    }
+
+    @Test
+    public void testDeleteFile(){
+        FileDto dto = FileDto.builder().message("Delete a old file").sha("7699dde381fe07f110c730a2b71df84938c0235b").build();
+        gitHub.deleteFile(owner, repo, "CVULXPZJYLO/czx/shiyitu.png_0",dto);
     }
 }

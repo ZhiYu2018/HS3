@@ -17,6 +17,7 @@ public class HS3Storage {
     public HS3Storage(){
         fileSystemMap = new ConcurrentHashMap<>();
     }
+
     public HS3FileSystem getHs3FileSystem(UserInfo usi){
         String key = String.format("%s.%s", usi.getOwner(), usi.getRepo());
         HS3FileSystem fileSystem = fileSystemMap.get(key);

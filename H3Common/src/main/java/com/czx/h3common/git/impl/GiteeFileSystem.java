@@ -23,12 +23,22 @@ public class GiteeFileSystem implements HS3FileSystem {
     }
 
     @Override
-    public List<FileMeta> list(String home, String path) {
+    public List<FileMeta> listHome(String home) {
+        return null;
+    }
+
+    @Override
+    public List<FileMeta> listSpace(String home, String path) {
         return null;
     }
 
     @Override
     public HS3File open(FileMeta fileMeta) {
         return null;
+    }
+
+    @Override
+    public void clear() {
+
     }
 }

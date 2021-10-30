@@ -40,6 +40,10 @@ public class LruCache<K,V>{
         }
     }
 
+    public void clear(){
+        cache.clear();
+    }
+
     public V put(K key, V value){
         Lock wl = lock.writeLock();
         try{
